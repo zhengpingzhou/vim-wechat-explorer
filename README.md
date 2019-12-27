@@ -5,14 +5,13 @@
 ## Usage
 
 1. Export WeChat txt record from iTools (works for iOS): https://www.zhihu.com/question/20776328/answer/716902617
-2. Visualization with this tool:
+2. Visualization with this tool (Requirement: Ubuntu 18.04 LTS + Python 3.6):
 
 ``` bash
 git clone https://github.com/zhengpingzhou/vim-wechat-explorer.git
 cd vim-wechat-explorer
 
 # environment setup
-# Tested on: Ubuntu 18.04 LTS, Python 3.6
 sudo apt install mongodb
 sudo service mongodb start
 pip3 install --local flask pymongo easydict
