@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>WeChat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Loading Bootstrap -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Loading Flat UI -->
+    <link href="/static/css/flat-ui.min.css" rel="stylesheet">
+
+    <link href="/static/css/customize.css" rel="stylesheet">
+
+    <link rel="shortcut icon" href="/static/img/favicon.ico">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
+    <!--[if lt IE 9]>
+      <script src="../../dist/js/vendor/html5shiv.js"></script>
+      <script src="../../dist/js/vendor/respond.min.js"></script>
+    <![endif]-->
+    <script src="/static/js/jquery-3.4.1.min.js"></script>
+    <script>
+      var secId = "{{status.startSessId}}";
+      var atBottom = false;
+      var insertMode = false;
+
+      $(document).ready(function() {
+        prevSec = function() {
+          if (secId === "{{status.startSessId}}") {return false;}
+          if (atBottom) {
+            atBottom = false;
+          } else {
+            secId = "sec" + (parseInt(secId.replace("sec", "")) - 1);
+          }
+          
+          $('html, body').animate({
+              scrollTop: $("#" + secId).offset().top + 1
+          }, 200);
+          return true;
+        }
+
+        nextSec = function() {
+          if (secId === "{{status.endSessId}}") {
+            $("html, body").animate({ scrollTop: $(document).height() }, 200);
+            atBottom = true;
+            return true;
+          }
+          secId = "sec" + (parseInt(secId.replace("sec", "")) + 1);
+          $('html, body').animate({
+              scrollTop: $("#" + secId).offset().top + 1
+          }, 200);
+          return true;
+        }
+
+        findSec = function() {
+          var Wscroll = $(this).scrollTop();
+            $('section[id^="sec"]').each(function(){
+              var ThisOffset = $(this).closest('section').offset();
+              if(Wscroll >= ThisOffset.top){
+                  secId = $(this).closest('section').attr('id');
+            }
+          });
+        }
+
+        prevPage = function() {
+          page = Math.max(1, parseInt("{{status.curPage - 1}}"));
+          window.location.replace("/?page=" + page);
+        }
+
+        nextPage = function() {
+          page = Math.min(parseInt("{{status.maxPage}}"), parseInt("{{status.curPage + 1}}"));
+          window.location.replace("/?page=" + page);
+        }
+
+        scrollDown = function() {
+          var Wscroll = $(this).scrollTop();
+          $('html, body').animate({
+              scrollTop: Wscroll + 200
+          }, 200);
+        }
+
+        scrollUp = function() {
+          var Wscroll = $(this).scrollTop();
+          $('html, body').animate({
+              scrollTop: Wscroll - 200
+          }, 200);
+        }
+
+        hideControl = function() {
+          $("#control-panel").hide();
+        }
+
+        showControl = function() {
+          $("#control-panel").show();
+        }
+
+        keyDown = function(e) {
+          if (!insertMode) {
+            switch(e.which) {
+              /*^f*/case 70: if (e.ctrlKey) nextSec(); break;
+              /*^b*/case 66: if (e.ctrlKey) prevSec(); /*b*/ else showControl(); $("#startDate").focus(); break;
+              /*e*/case 69: showControl(); $("#endDate").focus(); break;
+              /*j*/case 74: scrollDown(); break;
+              /*k*/case 75: scrollUp(); break;
+              /*h*/case 72: prevPage(); break;
+              /*l*/case 76: nextPage(); break;
+              /*slash*/case 191: showControl(); $("#search").focus(); break;
+              /*colon*/case 186: case 59: showControl(); if (e.shiftKey) $("#page").focus(); break;
+              /*esc*/case 27: hideControl(); break;
+              default: return; 
+            }
+            e.preventDefault();
+          } else {
+            switch(e.which) {
+              /*esc*/case 27: $("input").blur(); break;
+            }
+          }
+        }
+
+        $("input").focus(function() {insertMode = true;});
+        $("input").focusout(function() {insertMode = false;});
+
+        $("#prev-section").click(prevSec);
+        
+        $("#next-section").click(nextSec);  
+        
+        $(window).on('scroll', findSec);
+
+        $(document).keydown(keyDown);
+
+        hideControl();
+      });
+      
+    </script>
+  </head>
+
+  <body>
+    <!-- main -->
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          {% for sess in sess_list %}
+          <section id="{{sess.id}}">
+          <hr style="border-top: 1px solid #333; margin: auto; width: 30%;">
+          <p style="color: #555; text-align: center;">{{sess.number}}</p>
+          <p>
+            {% for msg in sess.msg_list %}
+              <div class="btn {% if msg.sender != '我' %} btn-primary {% else %} btn-default {% endif %}" style="width: 100%; padding-top: 0px; padding-bottom: 0px; display:table; height:inherit">
+                <div style="width: 70px; min-height: 100%; height: 100%; margin: 0px; padding: 0px !important; float: left;">
+                    <img src="static/img/{{msg.profile}}" style="border-radius: 10%; width: 50px; height: 50px; margin-top: 10px; margin-bottom: 10px; padding: 0px !important; vertical-align: top;">
+                </div>
+                <div style="width: calc(100%-70px); margin-top: 10px; margin-bottom: 10px; padding: 0px; display: inline-block; min-width: 100%;">
+                  <div style="margin-left: 0px !important; margin-top: 0px; margin-bottom: 3px;">
+                      <span style="font-weight: bold; font-size: larger;">{{ msg.sender }}</span>
+                    <span style="margin-left: 10px; color: #ddd; font-size: smaller;">{{ msg.time }}</span>
+                  </div>
+                  <div style="word-break: break-all !important; max-width: 90% !important; display: inline-block; white-space:normal; line-height: 1.5;">{% autoescape false %}{{  msg.content | replace('\n','<br>') }}{% endautoescape %}</div>
+                </div>
+              </div>
+            {% endfor %}
+          </p>
+          </section>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <!-- main -->
+
+    <!-- control panel -->
+    <div id="control-panel" class="container">
+      <div class="pagination pagination-minimal fixed footer container" style="text-align: center;">
+        <ul style="margin: auto;">
+
+          <!-- pagination -->
+            <!-- prevPage -->
+            {% if status.curPage == 1 %}
+            <li class="previous"><a href="#" class="fui-arrow-left"></a></li>
+            {% else %}
+            <li class="previous"><a href="/?page={{status.curPage - 1}}" class="fui-arrow-left"></a></li>
+            {% endif %}
+
+            <!-- pages -->
+            {% for page in status.pages %}
+              {% if page == status.curPage %}
+              <li class="active"><a href="/?page={{page}}">{{ page }}</a></li>
+              {% else %}
+              <li><a href="/?page={{page}}">{{ page }}</a></li>
+              {% endif %}
+            {% endfor %}
+
+            <!-- goto page -->
+            <form action="/" method="GET" class="form-inline" role="form" style="display: inline-block;">
+              <input id="page" name="page" class="form-control" placeholder="page" value="{{status.curPage}}"  style="margin: 7px; background-color: #222; color: #eee; display: inline-block; font-size: smaller; width: 80px; height: 30px; margin-right: 0px;">
+              <label for="page" class="control-label" style="margin: 3px; color: #eee; display: inline-block !important; font-size: 14px; margin-left: 5px; margin-right: 5px;"> / {{status.maxPage}}</label>
+              <button type="submit" class="btn btn-primary fui-cmd" style="font-size: 10px; margin-left: 0px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;"></button>
+            </form>
+
+            <!-- prevSec -->
+            <li class="next"><a id="prev-section" class="prev-section fui-triangle-up" style="padding: 3px; border-radius: 50%; margin-left: 5px;"></a></li>
+            <!-- nextSec -->
+            <li class="next"><a id="next-section" class="next-section fui-triangle-down" style="padding: 3px; border-radius: 50%;"></a></li>
+            
+            <!-- nextPage -->
+            {% if status.curPage == status.maxPage %}
+            <li class="next"><a href="#" class="fui-arrow-right"></a></li>
+            {% else %}
+            <li class="next"><a href="/?page={{status.curPage + 1}}" class="fui-arrow-right"></a></li>
+            {% endif %}
+          <!-- pagination -->
+          
+          <!-- search -->
+          <form method="POST" class="form-inline" role="form" style="margin-left: 8px; margin-right: 8px; margin-bottom: 6px;">
+            <!-- from date -->
+            <div class="form-group">
+              <label for="startDate" class="control-label" style="margin: 3px; color: #eee; ">From:</label>
+              <input id="startDate" name="startDate" class="form-control input-sm" placeholder="YYYY-MM-DD" value="{{ params.startDateStr }}"  style="margin: 3px; background-color: #222; color: #eee;">
+            </div>
+            <!-- to date -->
+            <div class="form-group">
+              <label for="endDate" class="control-label" style="margin: 3px; margin-left: 15px; color: #eee; ">To:</label>
+              <input id="endDate" name="endDate" class="form-control input-sm" placeholder="YYYY-MM-DD" value="{{ params.endDateStr }}"  style="margin: 3px; background-color: #222; color: #eee;">
+            </div>
+            <!-- search regex -->
+            <div class="form-group">
+              <label for="search" class="control-label" style="margin: 3px; margin-left: 15px; color: #eee; ">Search:</label>
+              <input id="search" name="search" class="form-control input-sm" placeholder="Key word" value="{{ params.search }}"  style="margin: 3px; background-color: #222; color: #eee;">
+            </div>
+            <!-- submit button -->
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary fui-search" style="font-size: 14px; margin-left: 10px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;"></button>
+            </div>
+          </form>
+          <!-- search -->
+
+        </ul>
+      </div>
+    </div>
+    <!-- control panel -->
+  </body>
+</html>
