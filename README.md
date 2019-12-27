@@ -21,7 +21,8 @@ pip3 install --local flask pymongo easydict
 python3 tools/build_db.py -i /path/to/exported/itools/wechat/file
 
 # launch flask server, then goto http://127.0.0.1:5000/
-python3 app.py [--my-name="我的名字" --your-name="你的名字" --my-profile="/path/to/profile1.jpg" --your-profile="/path/to/profile2.jpg"]
+# customized profile images must be put into `static/img/`
+python3 app.py [--hide-control] [--my-name="我的名字" --your-name="你的名字" --my-profile="profile1.jpg" --your-profile="profile2.jpg"]
 ```
 
 ## Features

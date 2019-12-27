@@ -10,9 +10,9 @@ from flask import Flask, request, render_template, redirect
 parser = argparse.ArgumentParser()
 parser.add_argument('--my-name', type=str, default='')
 parser.add_argument('--your-name', type=str, default='')
-parser.add_argument('--my-profile', type=str, default='me.png')
-parser.add_argument('--your-profile', type=str, default='you.png')
-parser.add_argument('--hide-control', action='store_true')
+parser.add_argument('--my-profile', type=str, default='me.png', help='filename of customized profile. must be under static/img/.')
+parser.add_argument('--your-profile', type=str, default='you.png', help='filename of customized profile. must be under static/img/.')
+parser.add_argument('--hide-control', action='store_true', help='set to hide control panel on default.')
 args = parser.parse_args()
 
 client = pymongo.MongoClient("localhost", 27017)
