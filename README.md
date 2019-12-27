@@ -1,6 +1,6 @@
 # vim-wechat-explorer
 
-![screenshot](static/img/screenshot.jpg)
+![screenshot](static/img/screenshot.png)
 
 ## Usage
 
