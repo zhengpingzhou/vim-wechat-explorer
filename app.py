@@ -12,6 +12,7 @@ parser.add_argument('--my-name', type=str, default='')
 parser.add_argument('--your-name', type=str, default='')
 parser.add_argument('--my-profile', type=str, default='me.png')
 parser.add_argument('--your-profile', type=str, default='you.png')
+parser.add_argument('--hide-control', action='store_true')
 args = parser.parse_args()
 
 client = pymongo.MongoClient("localhost", 27017)
@@ -19,8 +20,8 @@ db = client.wechat
 partner = db.partner 
 
 params = edict(
-    startDate=datetime(2018, 6, 27),
-    endDate=datetime(2019, 6, 30),
+    startDate=datetime(2000, 1, 1),
+    endDate=datetime.now(),
     search=''
 )
 
@@ -53,10 +54,11 @@ def query():
 
     sess_list = []
     msg_list = []
-    last = datetime(1998, 2, 15)
+    lastDate = params.startDate
 
     for msg in found:
         msg = edict(msg)
+        msg.content = msg.content.replace('??', '[emoji]')
         if msg.sender == '我':
             msg.profile = args.my_profile
             if args.my_name: msg.sender = args.my_name
@@ -64,17 +66,17 @@ def query():
             msg.profile = args.your_profile
             if args.your_name: msg.sender = args.your_name
 
-        if (msg.datetime - last).seconds > 3600:
-            sess = edict(msg_list=msg_list, id=f'sec{len(sess_list) + 1}', number=len(sess_list) + 1)
+        if (msg.datetime - lastDate).seconds > 3600:
+            sess = edict(msg_list=msg_list, id='sec' + str(len(sess_list) + 1), number=len(sess_list) + 1)
             if msg_list: sess_list.append(sess)
             msg_list = []
 
-        if len(msg_list) > 0 and (msg_list[-1].sender == msg.sender and (msg.datetime - last).seconds < 180):
+        if len(msg_list) > 0 and (msg_list[-1].sender == msg.sender and (msg.datetime - lastDate).seconds < 180):
             msg_list[-1].content += '\n' + msg.content
         else:
             msg_list.append(msg)
 
-        last = msg.datetime
+        lastDate = msg.datetime
     
     max_page = math.ceil(len(sess_list) / status.nSessVisible)
     return sess_list, max_page
@@ -125,7 +127,7 @@ def main():
     status.endSessId = "sec" + str(status.endSess)
     sess_list = status.sess_list[status.startSess - 1 : status.endSess]
 
-    return render_template('template.html', sess_list=sess_list, params=params, status=status)
+    return render_template('template.html', sess_list=sess_list, params=params, status=status, args=args)
 
 if __name__ == '__main__':
     app.run()

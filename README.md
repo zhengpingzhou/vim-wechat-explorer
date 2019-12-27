@@ -1,10 +1,11 @@
 # vim-wechat-explorer
 
+![screenshot](static/img/screenshot.jpg)
+
 ## Usage
 
-First, export WeChat txt record from iTools (works for iOS): https://www.zhihu.com/question/20776328/answer/716902617
-
-Second, visualize the txt file with this tool:
+1. Export WeChat txt record from iTools (works for iOS): https://www.zhihu.com/question/20776328/answer/716902617
+2. Visualization with this tool:
 
 ``` bash
 git clone https://github.com/zhengpingzhou/vim-wechat-explorer.git
