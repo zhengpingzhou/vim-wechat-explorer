@@ -106,3 +106,11 @@ border-color: #16a085;
 border-color: #333;
 color: #ccc;
 }
+
+::selection{
+background-color: #666;
+}
+
+::-moz-selection{
+background-color: #666;
+}

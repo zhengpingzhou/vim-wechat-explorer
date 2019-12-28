@@ -100,6 +100,22 @@
           window.location.replace('/msg/' + msgIdx);
         }
 
+        addToNotebook = function() {
+          $.getJSON('/favorite?add=' + secId,
+            function(data) {
+            //do nothing
+          });
+          return false;
+        }
+
+        delFromNotebook = function() {
+          $.getJSON('/favorite?del=' + secId,
+            function(data) {
+            //do nothing
+          });
+          return false;
+        }
+
         keyDown = function(e) {
           console.log(e.which);
           if (!insertMode && !e.ctrlKey) {
@@ -115,6 +131,8 @@
               /*esc*/case 27: hideControl(); break;
               /*left/backspace*/case 37: case 8: history.back(); break;
               /*rightarrow*/case 39: window.history.forward(); break;
+              /*a*/case 65: addToNotebook(); break;
+              /*d*/case 68: delFromNotebook(); break;
               default: return; 
             }
             e.preventDefault();
@@ -125,13 +143,13 @@
           }
         }
 
-        $("input").focus(function() {insertMode = true;});
-        $("input").focusout(function() {insertMode = false;});
+        $("input").focus(function() {insertMode = true; $(this).select();});
+        $("input").focusout(function() {insertMode = false; });
 
         $("#prev-section").click(prevSec);
         
         $("#next-section").click(nextSec);  
-        
+
         $(window).on('scroll', findSec);
 
         $(document).keydown(keyDown);

@@ -22,6 +22,7 @@ args = parser.parse_args()
 client = pymongo.MongoClient("localhost", 27017)
 db = client.wechat 
 partner = db.partner 
+notebook = db.notebook
 
 DATE_FORMAT = "%Y-%m-%d"
 params = edict(
@@ -49,31 +50,16 @@ cache = dict()
 
 app = Flask(__name__)
 
-def query():
-    if params.search.strip() == '' and (params.startDate, params.endDate) in cache:
-        return cache[(params.startDate, params.endDate)]
 
-    tic = time.time()
-    params.startDateStr = params.startDate.strftime(DATE_FORMAT)
-    params.endDateStr = params.endDate.strftime(DATE_FORMAT)
-    sql = {'datetime': {'$lte': params.endDate, '$gte': params.startDate}}
-    if params.search != '':
-        # FIXME: currently no escape for sql/html
-        sql['content'] = {'$regex': '.*' + params.search + '.*'}
-    found = partner.find(sql)
-    toc = time.time()
-    print(f'MongoDB: time elsapsed = {(toc - tic)}s.')
-
-    found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
-    print(f'Sort: time elsapsed = {(toc - tic)}s.')
-
+def merge_and_split_messages(messages):
+    sessIdx = 1
     sess_list = []
     msg_list = []
     lastDate = params.startDate
     msgIdx2sessIdx = {0: 1}
     msgIdx2msgIdx = {0: 0}
 
-    for msg in found:
+    for msg in messages:
         msg = edict(msg)
         msg.content = msg.content.replace('??', '[emoji]')
         if msg.sender == '我':
@@ -83,13 +69,13 @@ def query():
             msg.profile = args.your_profile
             if args.your_name: msg.sender = args.your_name
 
-        sessIdx = len(sess_list) + 1
-        msgIdx2sessIdx[msg.idx] = sessIdx
-
         if (msg.datetime - lastDate).seconds > 3600:
             sess = edict(msg_list=msg_list, id=f'sec{sessIdx}', number=sessIdx)
             if msg_list: sess_list.append(sess)
             msg_list = []
+
+        sessIdx = len(sess_list) + 1
+        msgIdx2sessIdx[msg.idx] = sessIdx
 
         if len(msg_list) > 0 and (msg_list[-1].sender == msg.sender and (msg.datetime - lastDate).seconds < 180):
             msg_list[-1].content += '\n' + msg.content
@@ -101,12 +87,32 @@ def query():
         lastDate = msg.datetime
     
     max_page = math.ceil(len(sess_list) / status.nSessVisible)
+    return sess_list, max_page, msgIdx2sessIdx, msgIdx2msgIdx
 
+
+def query(database, use_cache):
+    if use_cache and params.search.strip() == '' and (params.startDate, params.endDate) in cache:
+        return cache[(params.startDate, params.endDate)]
+
+    tic = time.time()
+    params.startDateStr = params.startDate.strftime(DATE_FORMAT)
+    params.endDateStr = params.endDate.strftime(DATE_FORMAT)
+    sql = {'datetime': {'$lte': params.endDate, '$gte': params.startDate}}
+    if params.search != '':
+        # FIXME: currently no escape for sql/html
+        sql['content'] = {'$regex': '.*' + params.search + '.*'}
+    found = database.find(sql)
+    toc = time.time()
+    print(f'MongoDB: time elsapsed = {(toc - tic)}s.')
+
+    found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
+    print(f'Sort: time elsapsed = {(toc - tic)}s.')
+
+    ret = merge_and_split_messages(found)
     toc = time.time()
     print(f'Query: time elsapsed = {(toc - tic)}s.')
 
-    ret = (sess_list, max_page, msgIdx2sessIdx, msgIdx2msgIdx)
-    if params.search.strip() == '':
+    if use_cache and params.search.strip() == '':
         cache[(params.startDate, params.endDate)] = ret
 
     return ret
@@ -127,6 +133,13 @@ def set_page(page):
     status.endPage = min(status.maxPage, status.curPage + status.nPageVisible - 1)
     status.startPage = max(1, status.endPage - status.nPageVisible + 1)
     status.pages = list(range(status.startPage, status.endPage + 1))
+
+    status.startSess = (status.curPage - 1) * status.nSessVisible + 1
+    status.endSess = min(status.startSess + status.nSessVisible - 1, len(status.sess_list))
+    status.startSessId = "sec" + str(status.startSess)
+    status.endSessId = "sec" + str(status.endSess)
+    sess_list = status.sess_list[status.startSess - 1 : status.endSess]
+    return sess_list
 
 
 @app.route('/msg/<msgIdx>')
@@ -159,62 +172,88 @@ def main_date():
     return redirect('/?' + urllib.parse.urlencode(urlargs))
 
 
-@app.route('/', methods=['GET'])
-def main():
+def feed(req, database, use_cache):
     scroll = None
     if status.sess_list is None:
-        status.sess_list, status.maxPage, _, _ = query()
+        status.sess_list, status.maxPage, _, _ = query(database, use_cache)
 
     # paging
-    if 'page' in request.args:
-        set_page(request.args['page'])
+    if 'page' in req.args:
+        sess_list = set_page(req.args['page'])
+    else:
+        sess_list = set_page(1)
     
     # filter
     is_dirty = False
 
-    if 'startDate' in request.args:
-        startDate = request.args['startDate'].strip()
+    if 'startDate' in req.args:
+        startDate = req.args['startDate'].strip()
         try:
             startDate = datetime.strptime(startDate, DATE_FORMAT)
             if startDate != params.startDate: is_dirty = True
             params.startDate = startDate
         except: pass
     
-    if 'endDate' in request.args:
-        endDate = request.args['endDate'].strip()
+    if 'endDate' in req.args:
+        endDate = req.args['endDate'].strip()
         try:
             endDate = datetime.strptime(endDate, DATE_FORMAT)
             if endDate != params.endDate: is_dirty = True
             params.endDate = endDate
         except: pass
 
-    if 'search' in request.args:
-        search = request.args['search'].strip()
+    if 'search' in req.args:
+        search = req.args['search'].strip()
         if search != params.search: is_dirty = True
         params.search = search
 
-    if is_dirty or 'msgIdx' in request.args:
-        status.sess_list, status.maxPage, msgIdx2sessIdx, msgIdx2msgIdx = query()
+    if is_dirty or 'msgIdx' in req.args:
+        status.sess_list, status.maxPage, msgIdx2sessIdx, msgIdx2msgIdx = query(database, use_cache)
 
-        if 'msgIdx' in request.args:
-            msgIdx = request.args['msgIdx']
+        if 'msgIdx' in req.args:
+            msgIdx = req.args['msgIdx']
             sessIdx = msgIdx2sessIdx[int(msgIdx)]
             page = (sessIdx - 1) // status.nSessVisible + 1
             scroll = f'msg{msgIdx2msgIdx[int(msgIdx)]}'
-
         else:
             page = 1
-        set_page(page)
+        
+        sess_list = set_page(page)
 
-    # paging
-    status.startSess = (status.curPage - 1) * status.nSessVisible + 1
-    status.endSess = min(status.startSess + status.nSessVisible - 1, len(status.sess_list))
-    status.startSessId = "sec" + str(status.startSess)
-    status.endSessId = "sec" + str(status.endSess)
-    sess_list = status.sess_list[status.startSess - 1 : status.endSess]
+    return edict(
+        sess_list = sess_list,
+        params = params,
+        status = status,
+        args = args,
+        scroll = scroll
+    )
 
-    return render_template('template.html', sess_list=sess_list, params=params, 
-        status=status, args=args, scroll=scroll)
+
+@app.route('/', methods=['GET'])
+def main():
+    kwargs = feed(request, database=partner, use_cache=True)
+    return render_template('template.html', **kwargs)
+
+
+@app.route('/notebook', methods=['GET'])
+def main_notebook():
+    kwargs = feed(request, database=notebook, use_cache=False)
+    return render_template('template.html', **kwargs)
+
+
+@app.route('/favorite', methods=['GET'])
+def main_favorite():
+    if 'add' in request.args:
+        sessId = request.args['add']
+        sessIdx = int(sessId.replace('sec', ''))
+        sess = status.sess_list[sessIdx - 1]
+        notebook.insert_many(sess)
+        print('Add:', sessId, sessIdx, len(sess))
+
+    elif 'del' in request.args:
+        pass
+
+    return None
 
 
 if __name__ == '__main__':
