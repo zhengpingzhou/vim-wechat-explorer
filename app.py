@@ -5,8 +5,6 @@ import argparse
 from datetime import datetime, timedelta
 
 import pymongo
-from easydict import EasyDict as edict
-
 from flask import Flask, request, render_template, redirect
 
 parser = argparse.ArgumentParser()
@@ -25,13 +23,19 @@ partner = db.partner
 notebook = db.notebook
 
 DATE_FORMAT = "%Y-%m-%d"
-params = edict(
+
+class Object: 
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+params = Object(
     startDate=datetime.strptime(args.start_date, DATE_FORMAT),
     endDate=datetime.strptime(args.end_date, DATE_FORMAT),
     search=''
 )
 
-status = edict(
+status = Object(
     curPage = 1,
     startPage = 1,
     endPage = 6,
@@ -43,7 +47,8 @@ status = edict(
     endSess = 10,
     startSessId = 'sec1',
     endSessId = 'sec10',
-    sess_list = None
+    sess_list = None,
+    base_url = '',
 )
 
 cache = dict()
@@ -55,24 +60,20 @@ def merge_and_split_messages(messages):
     sessIdx = 1
     sess_list = []
     msg_list = []
-    lastDate = params.startDate
+    lastDate = messages[0]['datetime']
     msgIdx2sessIdx = {0: 1}
     msgIdx2msgIdx = {0: 0}
 
-    for msg in messages:
-        msg = edict(msg)
+    sess = None
+    for i, msg in enumerate(messages):
+        msg = Object(**msg)
         msg.content = msg.content.replace('??', '[emoji]')
         if msg.sender == '我':
             msg.profile = args.my_profile
-            if args.my_name: msg.sender = args.my_name
+            if args.my_name: msg.senderName = args.my_name
         else:
             msg.profile = args.your_profile
-            if args.your_name: msg.sender = args.your_name
-
-        if (msg.datetime - lastDate).seconds > 3600:
-            sess = edict(msg_list=msg_list, id=f'sec{sessIdx}', number=sessIdx)
-            if msg_list: sess_list.append(sess)
-            msg_list = []
+            if args.your_name: msg.senderName = args.your_name
 
         sessIdx = len(sess_list) + 1
         msgIdx2sessIdx[msg.idx] = sessIdx
@@ -84,34 +85,33 @@ def merge_and_split_messages(messages):
             msg_list.append(msg)
             msgIdx2msgIdx[msg.idx] = msg.idx
 
+        if (msg.datetime - lastDate).seconds > 3600 or i == len(messages) - 1:
+            sess = Object(msg_list=msg_list, id=f'sec{sessIdx}', number=sessIdx)
+            if msg_list: sess_list.append(sess)
+            msg_list = []
+
         lastDate = msg.datetime
-    
+
     max_page = math.ceil(len(sess_list) / status.nSessVisible)
     return sess_list, max_page, msgIdx2sessIdx, msgIdx2msgIdx
 
 
 def query(database, use_cache):
     if use_cache and params.search.strip() == '' and (params.startDate, params.endDate) in cache:
+        print('Using cache...')
         return cache[(params.startDate, params.endDate)]
 
-    tic = time.time()
     params.startDateStr = params.startDate.strftime(DATE_FORMAT)
     params.endDateStr = params.endDate.strftime(DATE_FORMAT)
     sql = {'datetime': {'$lte': params.endDate, '$gte': params.startDate}}
     if params.search != '':
         # FIXME: currently no escape for sql/html
         sql['content'] = {'$regex': '.*' + params.search + '.*'}
-    found = database.find(sql)
-    toc = time.time()
-    print(f'MongoDB: time elsapsed = {(toc - tic)}s.')
 
+    found = database.find(sql)
     found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
-    print(f'Sort: time elsapsed = {(toc - tic)}s.')
 
     ret = merge_and_split_messages(found)
-    toc = time.time()
-    print(f'Query: time elsapsed = {(toc - tic)}s.')
-
     if use_cache and params.search.strip() == '':
         cache[(params.startDate, params.endDate)] = ret
 
@@ -184,7 +184,8 @@ def feed(req, database, use_cache):
         sess_list = set_page(1)
     
     # filter
-    is_dirty = False
+    is_dirty = (req.base_url != status.base_url)
+    status.base_url = req.base_url
 
     if 'startDate' in req.args:
         startDate = req.args['startDate'].strip()
@@ -220,7 +221,7 @@ def feed(req, database, use_cache):
         
         sess_list = set_page(page)
 
-    return edict(
+    return Object(
         sess_list = sess_list,
         params = params,
         status = status,
@@ -231,14 +232,17 @@ def feed(req, database, use_cache):
 
 @app.route('/', methods=['GET'])
 def main():
+    print('INFO: in main')
     kwargs = feed(request, database=partner, use_cache=True)
-    return render_template('template.html', **kwargs)
+    return render_template('template.html', **vars(kwargs))
 
 
 @app.route('/notebook', methods=['GET'])
 def main_notebook():
+    print('INFO: in main notebook')
     kwargs = feed(request, database=notebook, use_cache=False)
-    return render_template('template.html', **kwargs)
+    print('main_notebook', len(kwargs.sess_list), [sess.id for sess in kwargs.sess_list])
+    return render_template('template.html', **vars(kwargs))
 
 
 @app.route('/favorite', methods=['GET'])
@@ -247,14 +251,15 @@ def main_favorite():
         sessId = request.args['add']
         sessIdx = int(sessId.replace('sec', ''))
         sess = status.sess_list[sessIdx - 1]
-        notebook.insert_many(sess)
-        print('Add:', sessId, sessIdx, len(sess))
+        try: notebook.insert_many([vars(m) for m in sess.msg_list])
+        except: print('Existing messages!')
+        print('Add:', sessId, sessIdx, len(sess.msg_list))
 
     elif 'del' in request.args:
         pass
 
-    return None
+    return 'None'
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(threaded=True)

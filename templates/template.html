@@ -21,6 +21,7 @@
       <script src="../../dist/js/vendor/respond.min.js"></script>
     <![endif]-->
     <script src="/static/js/jquery-3.4.1.min.js"></script>
+    <script src="/static/js/jquery.cookie.js"></script>
     <script>
       var secId = "{{status.startSessId}}";
       var atBottom = false;
@@ -155,6 +156,7 @@
         $(document).keydown(keyDown);
 
         if ("{{scroll}}" != 'None') $("#{{scroll}}")[0].scrollIntoView();
+        if(performance.navigation.type == 2) location.reload(true);
       });
       
     </script>
@@ -177,7 +179,7 @@
                 </div>
                 <div style="width: calc(100%-70px); margin-top: 10px; margin-bottom: 10px; padding: 0px; display: inline-block; min-width: 100%;">
                   <div style="margin-left: 0px !important; margin-top: 0px; margin-bottom: 3px;">
-                      <span style="font-weight: bold; font-size: larger;">{{ msg.sender }}</span>
+                      <span style="font-weight: bold; font-size: larger;">{{ msg.senderName }}</span>
                     <span style="margin-left: 10px; color: #ddd; font-size: smaller;">{{ msg.time }}</span>
                   </div>
                   <div style="word-break: break-all !important; max-width: 90% !important; display: inline-block; white-space:normal; line-height: 1.5;">{% autoescape false %}{{  msg.content | replace('\n','<br>') }}{% endautoescape %}</div>
