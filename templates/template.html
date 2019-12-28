@@ -97,6 +97,7 @@
         }
 
         keyDown = function(e) {
+          console.log(e.which);
           if (!insertMode) {
             switch(e.which) {
               /*^f*/case 70: if (e.ctrlKey) nextSec(); break;
@@ -109,6 +110,8 @@
               /*slash*/case 191: showControl(); $("#search").focus(); break;
               /*colon*/case 186: case 59: showControl(); if (e.shiftKey) $("#page").focus(); break;
               /*esc*/case 27: hideControl(); break;
+              /*left/backspace*/case 37: case 8: history.back(); break;
+              /*rightarrow*/case 39: window.history.forward(); break;
               default: return; 
             }
             e.preventDefault();
@@ -211,7 +214,7 @@
           <!-- pagination -->
           
           <!-- search -->
-          <form method="POST" class="form-inline" role="form" style="margin-left: 8px; margin-right: 8px; margin-bottom: 6px;">
+          <form method="GET" name="filter" action="/" class="form-inline" role="form" style="margin-left: 8px; margin-right: 8px; margin-bottom: 6px;">
             <!-- from date -->
             <div class="form-group">
               <label for="startDate" class="control-label" style="margin: 3px; color: #eee; ">From:</label>

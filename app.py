@@ -97,28 +97,42 @@ def set_page(page):
     status.startPage = max(1, status.endPage - status.nPageVisible + 1)
     status.pages = list(range(status.startPage, status.endPage + 1))
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def main():
     if status.sess_list is None:
         status.sess_list, status.maxPage = query()
 
     # paging
-    if request.method == 'GET':
+    if 'page' in request.args:
         set_page(request.args.get('page'))
     
     # filter
-    elif request.method == 'POST':
-        startDate = request.form['startDate'].strip()
-        endDate = request.form['endDate'].strip()
-        search = request.form['search'].strip()
+    is_dirty = False
+
+    if 'startDate' in request.args:
+        startDate = request.args.get('startDate').strip()
         try:
-            params.startDate = datetime.strptime(startDate, "%Y-%m-%d")
-            params.endDate = datetime.strptime(endDate, "%Y-%m-%d")
-        except:
-            pass
+            startDate = datetime.strptime(startDate, "%Y-%m-%d")
+            if startDate != params.startDate: is_dirty = True
+            params.startDate = startDate
+        except: pass
+    
+    if 'endDate' in request.args:
+        endDate = request.args.get('endDate').strip()
+        try:
+            endDate = datetime.strptime(endDate, "%Y-%m-%d")
+            if endDate != params.endDate: is_dirty = True
+            params.endDate = endDate
+        except: pass
+
+    if 'search' in request.args:
+        search = request.args.get('search').strip()
+        if search != params.search: is_dirty = True
         params.search = search
+
+    if is_dirty:
         status.sess_list, status.maxPage = query()
-        return redirect('/?page=1')
+        set_page(1)
 
     # paging
     status.startSess = (status.curPage - 1) * status.nSessVisible + 1

@@ -13,7 +13,7 @@ def preprocess(input_path, output_path):
     try:
         raw = open(input_path, encoding='utf-8').read()
     except UnicodeDecodeError:
-        raw = subprocess.check_output(['iconv', '-f', 'gbk', '-t', 'utf-8', '-c', input_path]).decode('utf-8')
+        raw = subprocess.check_output([r'D:\Program Files\Git\usr\bin\iconv.exe', '-f', 'gbk', '-t', 'utf-8', '-c', input_path]).decode('utf-8')
 
     regex = r'(201\d-\d\d-\d\d \d\d:\d\d)'
     split = re.split(regex, raw)
@@ -42,7 +42,7 @@ def build_db(filename):
     partner = db.partner
 
     table = []
-    with open(filename) as fin:
+    with open(filename, encoding='utf-8') as fin:
         for i, line in enumerate(fin):
             record = json.loads(line)
             record['datetime'] = datetime.strptime(record['time'], "%Y-%m-%d %H:%M")
