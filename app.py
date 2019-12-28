@@ -81,6 +81,7 @@ def query():
     max_page = math.ceil(len(sess_list) / status.nSessVisible)
     return sess_list, max_page
 
+
 def set_page(page):
     try:
         status.curPage = int(page)
@@ -96,6 +97,12 @@ def set_page(page):
     status.endPage = min(status.maxPage, status.curPage + status.nPageVisible - 1)
     status.startPage = max(1, status.endPage - status.nPageVisible + 1)
     status.pages = list(range(status.startPage, status.endPage + 1))
+
+
+@ap.route('/msg/<idx>')
+def main_msg(idx):
+    pass
+
 
 @app.route('/', methods=['GET'])
 def main():
@@ -142,6 +149,7 @@ def main():
     sess_list = status.sess_list[status.startSess - 1 : status.endSess]
 
     return render_template('template.html', sess_list=sess_list, params=params, status=status, args=args)
+
 
 if __name__ == '__main__':
     app.run()
