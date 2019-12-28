@@ -2,7 +2,7 @@ import math
 import time
 import urllib
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pymongo
 from easydict import EasyDict as edict
@@ -23,9 +23,10 @@ client = pymongo.MongoClient("localhost", 27017)
 db = client.wechat 
 partner = db.partner 
 
+DATE_FORMAT = "%Y-%m-%d"
 params = edict(
-    startDate=datetime.strptime(args.start_date, "%Y-%m-%d"),
-    endDate=datetime.strptime(args.end_date, "%Y-%m-%d"),
+    startDate=datetime.strptime(args.start_date, DATE_FORMAT),
+    endDate=datetime.strptime(args.end_date, DATE_FORMAT),
     search=''
 )
 
@@ -44,24 +45,33 @@ status = edict(
     sess_list = None
 )
 
+cache = dict()
+
 app = Flask(__name__)
 
 def query():
+    if params.search.strip() == '' and (params.startDate, params.endDate) in cache:
+        return cache[(params.startDate, params.endDate)]
+
     tic = time.time()
-    params.startDateStr = params.startDate.strftime("%Y-%m-%d")
-    params.endDateStr = params.endDate.strftime("%Y-%m-%d")
+    params.startDateStr = params.startDate.strftime(DATE_FORMAT)
+    params.endDateStr = params.endDate.strftime(DATE_FORMAT)
     sql = {'datetime': {'$lte': params.endDate, '$gte': params.startDate}}
     if params.search != '':
         # FIXME: currently no escape for sql/html
         sql['content'] = {'$regex': '.*' + params.search + '.*'}
     found = partner.find(sql)
+    toc = time.time()
+    print(f'MongoDB: time elsapsed = {(toc - tic)}s.')
+
     found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
+    print(f'Sort: time elsapsed = {(toc - tic)}s.')
 
     sess_list = []
     msg_list = []
     lastDate = params.startDate
-    msgIdx2sessIdx = dict()
-    msgIdx2msgIdx = dict()
+    msgIdx2sessIdx = {0: 1}
+    msgIdx2msgIdx = {0: 0}
 
     for msg in found:
         msg = edict(msg)
@@ -95,7 +105,11 @@ def query():
     toc = time.time()
     print(f'Query: time elsapsed = {(toc - tic)}s.')
 
-    return sess_list, max_page, msgIdx2sessIdx, msgIdx2msgIdx
+    ret = (sess_list, max_page, msgIdx2sessIdx, msgIdx2msgIdx)
+    if params.search.strip() == '':
+        cache[(params.startDate, params.endDate)] = ret
+
+    return ret
 
 
 def set_page(page):
@@ -115,14 +129,34 @@ def set_page(page):
     status.pages = list(range(status.startPage, status.endPage + 1))
 
 
-@app.route('/msg/<idx>')
-def main_msg(idx):
+@app.route('/msg/<msgIdx>')
+def main_msg(msgIdx):
     return redirect('/?' + urllib.parse.urlencode([
-        ('startDate', datetime.strftime(params.startDate, "%Y-%m-%d")),
-        ('endDate', datetime.strftime(params.endDate, "%Y-%m-%d")),
+        ('startDate', datetime.strftime(params.startDate, DATE_FORMAT)),
+        ('endDate', datetime.strftime(params.endDate, DATE_FORMAT)),
         ('search', ''),
-        ('msgId', idx)
+        ('msgIdx', msgIdx)
     ]))
+
+
+@app.route('/date', methods=['GET'])
+def main_date():
+    targetDate = request.args['date']
+    urlargs = [
+        ('startDate', datetime.strftime(params.startDate, DATE_FORMAT)),
+        ('endDate', datetime.strftime(params.endDate, DATE_FORMAT))]
+    try:
+        date = datetime.strptime(targetDate, DATE_FORMAT)
+        found = partner.find({'datetime': {'$lt': date + timedelta(days=1), '$gte': date}})
+        found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
+        msgIdx = found[0]['idx']
+        urlargs += [('search', '')]
+        urlargs += [('msgIdx', msgIdx)]
+    except:
+        urlargs += [('search', params.search)]
+        urlargs += [('page', status.curPage)]
+        print('Invalid date:', targetDate)
+    return redirect('/?' + urllib.parse.urlencode(urlargs))
 
 
 @app.route('/', methods=['GET'])
@@ -141,7 +175,7 @@ def main():
     if 'startDate' in request.args:
         startDate = request.args['startDate'].strip()
         try:
-            startDate = datetime.strptime(startDate, "%Y-%m-%d")
+            startDate = datetime.strptime(startDate, DATE_FORMAT)
             if startDate != params.startDate: is_dirty = True
             params.startDate = startDate
         except: pass
@@ -149,7 +183,7 @@ def main():
     if 'endDate' in request.args:
         endDate = request.args['endDate'].strip()
         try:
-            endDate = datetime.strptime(endDate, "%Y-%m-%d")
+            endDate = datetime.strptime(endDate, DATE_FORMAT)
             if endDate != params.endDate: is_dirty = True
             params.endDate = endDate
         except: pass
@@ -159,13 +193,15 @@ def main():
         if search != params.search: is_dirty = True
         params.search = search
 
-    if is_dirty:
+    if is_dirty or 'msgIdx' in request.args:
         status.sess_list, status.maxPage, msgIdx2sessIdx, msgIdx2msgIdx = query()
-        if 'msgId' in request.args:
-            msgId = request.args['msgId']
-            sessIdx = msgIdx2sessIdx[int(msgId)]
+
+        if 'msgIdx' in request.args:
+            msgIdx = request.args['msgIdx']
+            sessIdx = msgIdx2sessIdx[int(msgIdx)]
             page = (sessIdx - 1) // status.nSessVisible + 1
-            scroll = f'msg{msgIdx2msgIdx[int(msgId)]}'
+            scroll = f'msg{msgIdx2msgIdx[int(msgIdx)]}'
+
         else:
             page = 1
         set_page(page)

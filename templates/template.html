@@ -111,7 +111,7 @@
               /*h*/case 72: prevPage(); break;
               /*l*/case 76: nextPage(); break;
               /*slash*/case 191: showControl(); $("#search").focus(); break;
-              /*colon*/case 186: case 59: showControl(); if (e.shiftKey) $("#page").focus(); break;
+              /*colon*/case 186: case 59: showControl(); if (e.shiftKey) $("#date").focus(); break;
               /*esc*/case 27: hideControl(); break;
               /*left/backspace*/case 37: case 8: history.back(); break;
               /*rightarrow*/case 39: window.history.forward(); break;
@@ -136,7 +136,6 @@
 
         $(document).keydown(keyDown);
 
-        if ("{{args.hide_control}}" === 'True') hideControl();
         if ("{{scroll}}" != 'None') $("#{{scroll}}")[0].scrollIntoView();
       });
       
@@ -176,7 +175,7 @@
     <!-- main -->
 
     <!-- control panel -->
-    <div id="control-panel" class="container">
+    <div id="control-panel" class="container" {% if args.hide_control == true %} style="display: none !important;" {% endif %}>
       <div class="pagination pagination-minimal fixed footer container" style="text-align: center;">
         <ul style="margin: auto;">
 
@@ -199,8 +198,14 @@
 
             <!-- goto page -->
             <form action="/" method="GET" class="form-inline" role="form" style="display: inline-block;">
-              <input id="page" name="page" class="form-control" placeholder="page" value="{{status.curPage}}"  style="margin: 7px; background-color: #222; color: #eee; display: inline-block; font-size: smaller; width: 80px; height: 30px; margin-right: 0px;">
+              <input id="page" name="page" class="form-control input-sm" placeholder="page" value="{{status.curPage}}"  style="margin: 7px; background-color: #222; color: #eee; display: inline-block; font-size: smaller; width: 80px; height: 30px; margin-right: 0px;">
               <label for="page" class="control-label" style="margin: 3px; color: #eee; display: inline-block !important; font-size: 14px; margin-left: 5px; margin-right: 5px;"> / {{status.maxPage}}</label>
+              <button type="submit" class="btn btn-primary fui-cmd" style="font-size: 10px; margin-left: 0px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;"></button>
+            </form>
+
+            <!-- goto date -->
+            <form action="/date" method="GET" class="form-inline" role="form" style="display: inline-block;">
+              <input id="date" name="date" class="form-control input-sm" placeholder="YYYY-MM-DD" style="margin: 7px; background-color: #222; color: #eee; display: inline-block; width: 80px; height: 30px; margin-right: 0px; min-width: 150px;">
               <button type="submit" class="btn btn-primary fui-cmd" style="font-size: 10px; margin-left: 0px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;"></button>
             </form>
 
