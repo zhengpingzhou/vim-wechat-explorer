@@ -1,4 +1,6 @@
 import math
+import time
+import urllib
 import argparse
 from datetime import datetime
 
@@ -12,6 +14,8 @@ parser.add_argument('--my-name', type=str, default='')
 parser.add_argument('--your-name', type=str, default='')
 parser.add_argument('--my-profile', type=str, default='me.png', help='filename of customized profile. must be under static/img/.')
 parser.add_argument('--your-profile', type=str, default='you.png', help='filename of customized profile. must be under static/img/.')
+parser.add_argument('--start-date', type=str, default='2000-01-01')
+parser.add_argument('--end-date', type=str, default='2100-01-01')
 parser.add_argument('--hide-control', action='store_true', help='set to hide control panel on default.')
 args = parser.parse_args()
 
@@ -20,8 +24,8 @@ db = client.wechat
 partner = db.partner 
 
 params = edict(
-    startDate=datetime(2000, 1, 1),
-    endDate=datetime.now(),
+    startDate=datetime.strptime(args.start_date, "%Y-%m-%d"),
+    endDate=datetime.strptime(args.end_date, "%Y-%m-%d"),
     search=''
 )
 
@@ -43,6 +47,7 @@ status = edict(
 app = Flask(__name__)
 
 def query():
+    tic = time.time()
     params.startDateStr = params.startDate.strftime("%Y-%m-%d")
     params.endDateStr = params.endDate.strftime("%Y-%m-%d")
     sql = {'datetime': {'$lte': params.endDate, '$gte': params.startDate}}
@@ -55,6 +60,8 @@ def query():
     sess_list = []
     msg_list = []
     lastDate = params.startDate
+    msgIdx2sessIdx = dict()
+    msgIdx2msgIdx = dict()
 
     for msg in found:
         msg = edict(msg)
@@ -66,20 +73,29 @@ def query():
             msg.profile = args.your_profile
             if args.your_name: msg.sender = args.your_name
 
+        sessIdx = len(sess_list) + 1
+        msgIdx2sessIdx[msg.idx] = sessIdx
+
         if (msg.datetime - lastDate).seconds > 3600:
-            sess = edict(msg_list=msg_list, id='sec' + str(len(sess_list) + 1), number=len(sess_list) + 1)
+            sess = edict(msg_list=msg_list, id=f'sec{sessIdx}', number=sessIdx)
             if msg_list: sess_list.append(sess)
             msg_list = []
 
         if len(msg_list) > 0 and (msg_list[-1].sender == msg.sender and (msg.datetime - lastDate).seconds < 180):
             msg_list[-1].content += '\n' + msg.content
+            msgIdx2msgIdx[msg.idx] = msg_list[-1].idx
         else:
             msg_list.append(msg)
+            msgIdx2msgIdx[msg.idx] = msg.idx
 
         lastDate = msg.datetime
     
     max_page = math.ceil(len(sess_list) / status.nSessVisible)
-    return sess_list, max_page
+
+    toc = time.time()
+    print(f'Query: time elsapsed = {(toc - tic)}s.')
+
+    return sess_list, max_page, msgIdx2sessIdx, msgIdx2msgIdx
 
 
 def set_page(page):
@@ -99,25 +115,31 @@ def set_page(page):
     status.pages = list(range(status.startPage, status.endPage + 1))
 
 
-@ap.route('/msg/<idx>')
+@app.route('/msg/<idx>')
 def main_msg(idx):
-    pass
+    return redirect('/?' + urllib.parse.urlencode([
+        ('startDate', datetime.strftime(params.startDate, "%Y-%m-%d")),
+        ('endDate', datetime.strftime(params.endDate, "%Y-%m-%d")),
+        ('search', ''),
+        ('msgId', idx)
+    ]))
 
 
 @app.route('/', methods=['GET'])
 def main():
+    scroll = None
     if status.sess_list is None:
-        status.sess_list, status.maxPage = query()
+        status.sess_list, status.maxPage, _, _ = query()
 
     # paging
     if 'page' in request.args:
-        set_page(request.args.get('page'))
+        set_page(request.args['page'])
     
     # filter
     is_dirty = False
 
     if 'startDate' in request.args:
-        startDate = request.args.get('startDate').strip()
+        startDate = request.args['startDate'].strip()
         try:
             startDate = datetime.strptime(startDate, "%Y-%m-%d")
             if startDate != params.startDate: is_dirty = True
@@ -125,7 +147,7 @@ def main():
         except: pass
     
     if 'endDate' in request.args:
-        endDate = request.args.get('endDate').strip()
+        endDate = request.args['endDate'].strip()
         try:
             endDate = datetime.strptime(endDate, "%Y-%m-%d")
             if endDate != params.endDate: is_dirty = True
@@ -133,13 +155,20 @@ def main():
         except: pass
 
     if 'search' in request.args:
-        search = request.args.get('search').strip()
+        search = request.args['search'].strip()
         if search != params.search: is_dirty = True
         params.search = search
 
     if is_dirty:
-        status.sess_list, status.maxPage = query()
-        set_page(1)
+        status.sess_list, status.maxPage, msgIdx2sessIdx, msgIdx2msgIdx = query()
+        if 'msgId' in request.args:
+            msgId = request.args['msgId']
+            sessIdx = msgIdx2sessIdx[int(msgId)]
+            page = (sessIdx - 1) // status.nSessVisible + 1
+            scroll = f'msg{msgIdx2msgIdx[int(msgId)]}'
+        else:
+            page = 1
+        set_page(page)
 
     # paging
     status.startSess = (status.curPage - 1) * status.nSessVisible + 1
@@ -148,7 +177,8 @@ def main():
     status.endSessId = "sec" + str(status.endSess)
     sess_list = status.sess_list[status.startSess - 1 : status.endSess]
 
-    return render_template('template.html', sess_list=sess_list, params=params, status=status, args=args)
+    return render_template('template.html', sess_list=sess_list, params=params, 
+        status=status, args=args, scroll=scroll)
 
 
 if __name__ == '__main__':
