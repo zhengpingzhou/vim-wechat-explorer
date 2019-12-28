@@ -63,9 +63,9 @@ def merge_and_split_messages(messages):
     lastDate = messages[0]['datetime']
     msgIdx2sessIdx = {0: 1}
     msgIdx2msgIdx = {0: 0}
+    sentinel = {'datetime': datetime(2100, 1, 1), 'sender': '', 'content': '', 'idx': 1000000000}
 
-    sess = None
-    for i, msg in enumerate(messages):
+    for i, msg in enumerate(messages + [sentinel]):
         msg = Object(**msg)
         msg.content = msg.content.replace('??', '[emoji]')
         if msg.sender == '我':
@@ -74,6 +74,11 @@ def merge_and_split_messages(messages):
         else:
             msg.profile = args.your_profile
             if args.your_name: msg.senderName = args.your_name
+
+        if (msg.datetime - lastDate).seconds > 1800:
+            sess = Object(msg_list=msg_list, id=f'sec{sessIdx}', number=sessIdx)
+            if msg_list: sess_list.append(sess)
+            msg_list = []
 
         sessIdx = len(sess_list) + 1
         msgIdx2sessIdx[msg.idx] = sessIdx
@@ -84,11 +89,6 @@ def merge_and_split_messages(messages):
         else:
             msg_list.append(msg)
             msgIdx2msgIdx[msg.idx] = msg.idx
-
-        if (msg.datetime - lastDate).seconds > 3600 or i == len(messages) - 1:
-            sess = Object(msg_list=msg_list, id=f'sec{sessIdx}', number=sessIdx)
-            if msg_list: sess_list.append(sess)
-            msg_list = []
 
         lastDate = msg.datetime
 
