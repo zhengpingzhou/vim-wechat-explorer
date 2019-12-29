@@ -30,8 +30,8 @@ cfg = Object(
     EMPTY_RESPONSE = '{}'
 )
 db = {
-    cfg.ID_MAIN: Database(args, cfg.ID_MAIN), 
-    cfg.ID_NOTEBOOK: Database(args, cfg.ID_NOTEBOOK)
+    cfg.ID_MAIN: Database(args, cfg.ID_MAIN, use_cache=True), 
+    cfg.ID_NOTEBOOK: Database(args, cfg.ID_NOTEBOOK, use_cache=False)
 }
 
 
@@ -94,9 +94,9 @@ def DoNotebook(viewUrl, viewId, secId, operation):
     sec = result.secList[secIdx - 1]
 
     if operation == 'add':
-        cnt = db[viewId].insertMany(sec.msgList)
+        cnt = db[cfg.ID_NOTEBOOK].insertMany(sec.msgList)
     elif operation == 'del':
-        cnt = db[viewId].deleteMany(sec.msgList)
+        cnt = db[cfg.ID_NOTEBOOK].deleteMany(sec.msgList)
     
     print('op:', operation, 'sec:', secId, '#messages:', cnt)
     return cfg.EMPTY_RESPONSE

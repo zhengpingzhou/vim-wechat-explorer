@@ -107,7 +107,7 @@
         }
 
         addToNotebook = function(secId) {
-            alert("确认添加: " + secId + "?");
+            if (!alert("确认添加: " + secId + "?")) return false;
             $.ajax({
                 type: "POST",
                 dataType: "json",
@@ -121,7 +121,7 @@
         }
 
         delFromNotebook = function(secIdx) {
-            alert("确认删除: " + secId + "?"); 
+            if (!alert("确认删除: " + secId + "?")) return false;
             $.ajax({
                 type: "POST",
                 dataType: "json",
@@ -212,7 +212,7 @@
                     <!-- time -->
                     <span class="msg-time">{{ msg.time }}</span>
                   </div>
-                  <div class="msg-content">{% autoescape false %}{{  msg.content | replace('\n','<br>') }}{% endautoescape %}</div>
+                  <div class="msg-content">{% for p in msg.content.split('\n') %} {{ p }}<br> {% endfor %}</div>
                 </div>
               </div>
             {% endfor %}

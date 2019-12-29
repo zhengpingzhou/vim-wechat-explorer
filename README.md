@@ -72,7 +72,6 @@ optional arguments:
 
 ## TODO
 
-- 对聊天记录进行html转义
 - 对搜索框进行sql转义
 - 文本选择、复制、粘贴
 - url识别

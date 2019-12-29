@@ -30,13 +30,30 @@ class Database(object):
     SEC_INTERVAL = 1800     # 30min
     MSG_INTERVAL = 180      # 3min
 
-    def __init__(self, args, dbName):
+    def __init__(self, args, dbName, use_cache=False):
         self._db = db[dbName]
         self._startDate = self.DATETIME_MIN
         self._endDate = self.DATETIME_MAX
         self._search = ''
         self._cache = dict()
+        self._use_cache = use_cache
         self.args = args
+
+    
+    def insertMany(self, msgList):
+        nAdd = 0
+        for msg in msgList:
+            try: self._db.insert_one(vars(msg)); nAdd += 1
+            except: print('Add failed! msgIdx:', msg.idx)  
+        print('nAdd:', nAdd)
+
+    
+    def deleteMany(self, msgList):
+        nDel = 0
+        for msg in msgList:
+            try: nDel += self._db.delete_one({'datetime': msg.datetime}).deleted_count
+            except: print('Del failed! msgIdx:', msg.idx)  
+        print('nDel:', nDel)
 
 
     def query(self, preprocess, **kwargs):
@@ -53,7 +70,7 @@ class Database(object):
             sql = {'datetime': {'$lte': self._endDate, '$gte': self._startDate}}
             if self._search != '': sql['content'] = {'$regex': '.*' + self._search + '.*'}
 
-        if preprocess and self._search == '' and (self._startDate, self._endDate) in self._cache:
+        if self._use_cache and preprocess and self._search == '' and (self._startDate, self._endDate) in self._cache:
             print('Using cache...')
             return self._cache[(self._startDate, self._endDate)]
 
@@ -61,7 +78,7 @@ class Database(object):
         found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
 
         result = self.preprocess(found) if preprocess else Object(msgList=found)
-        if preprocess and self._search == '': self._cache[(self._startDate, self._endDate)] = result
+        if self._use_cache and preprocess and self._search == '': self._cache[(self._startDate, self._endDate)] = result
         return result
 
 
@@ -78,8 +95,7 @@ class Database(object):
         secIdx = 1
         msgList = []
         lastDate = found[0]['datetime']
-        dummy = {'datetime': self.DATETIME_MAX, 
-            'sender': '', 'content': '', 'idx': -1}
+        dummy = {'datetime': self.DATETIME_MAX, 'sender': '', 'content': '', 'idx': -1}
 
         for msg in found + [dummy]:
             msg = preprocessMsg(self.args, msg)
@@ -95,8 +111,7 @@ class Database(object):
             secIdx = len(result.secList) + 1
             result.msg2sec[msg.idx] = secIdx
 
-            if len(msgList) > 0 and msgList[-1].sender == msg.sender \
-              and (msg.datetime - lastDate).seconds < self.MSG_INTERVAL:
+            if len(msgList) > 0 and msgList[-1].sender == msg.sender and (msg.datetime - lastDate).seconds < self.MSG_INTERVAL:
                 msgList[-1].content += '\n' + msg.content
                 result.msg2parent[msg.idx] = msgList[-1].idx
             else:
