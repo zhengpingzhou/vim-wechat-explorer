@@ -156,3 +156,39 @@ p.notebook-btns {
 button.notebook-btn {
 	background-color: #333; font-size: 12px; border-color: #222; text-align: center;
 }
+input.input-page {
+	margin: 7px; background-color: #222; color: #eee; display: inline-block; font-size: smaller; width: 80px !important; height: 30px; margin-right: 0px;
+}
+label.label-page {
+	margin: 3px; color: #eee; display: inline-block !important; font-size: 14px; margin-left: 5px; margin-right: 5px;
+}
+button.btn-submit-cmd {
+	font-size: 10px; margin-left: 0px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;
+}
+input.input-date {
+	margin: 7px; background-color: #222; color: #eee; display: inline-block; width: 80px !important; height: 30px; margin-right: 0px; min-width: 150px;
+}
+button.btn-submit-date {
+	font-size: 10px; margin-left: 0px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;
+}
+a.prev-section {
+	padding: 3px !important; border-radius: 50%; margin-left: 5px !important;
+}
+a.next-section {
+	padding: 3px !important; border-radius: 50%;
+}
+form.form-filter {
+	margin-left: 8px; margin-right: 8px; margin-bottom: 6px;
+}
+label.start-date {
+	margin: 3px; color: #eee; margin-left: 15px;
+}
+input.input-dark-sm {
+	margin: 3px; background-color: #222; color: #eee;
+}
+label.label-small {
+	margin: 3px; margin-left: 15px; color: #eee;
+}
+button.btn-submit {
+	font-size: 14px; margin-left: 10px !important; height: 30px; background-color: #222 !important; color: #eee; border-color: #222; padding: 5px;
+}

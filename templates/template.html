@@ -204,7 +204,7 @@
   </head>
 
   <body>
-    <!-- main -->
+    <!---------------------------------------------------------------------------------->
     <div class="container">
       <div class="row">
         <div class="col-md-12">
@@ -244,12 +244,13 @@
         </div>
       </div>
     </div>
-    <!-- main -->
+	<!---------------------------------------------------------------------------------->
+
 
     <!-- control panel -->
     <div id="control-panel" class="container" {% if args.hide_control == true %} style="display: none !important;" {% endif %}>
       <div class="pagination pagination-minimal fixed footer container" style="text-align: center;">
-        <ul style="margin: auto;">
+        <ul>
 
           <!-- pagination -->
             <!-- prevPage -->
@@ -270,21 +271,21 @@
 
             <!-- goto page -->
             <form action="/" method="GET" class="form-inline" role="form" style="display: inline-block;">
-              <input id="page" name="page" class="form-control input-sm" placeholder="page" value="{{status.curPage}}"  style="margin: 7px; background-color: #222; color: #eee; display: inline-block; font-size: smaller; width: 80px; height: 30px; margin-right: 0px;">
-              <label for="page" class="control-label" style="margin: 3px; color: #eee; display: inline-block !important; font-size: 14px; margin-left: 5px; margin-right: 5px;"> / {{status.maxPage}}</label>
-              <button type="submit" class="btn btn-primary fui-cmd" style="font-size: 10px; margin-left: 0px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;"></button>
+              <input id="page" name="page" placeholder="page" value="{{status.curPage}}" class="form-control input-sm input-page" >
+              <label for="page" class="control-label label-page"> / {{status.maxPage}}</label>
+              <button type="submit" class="btn btn-primary fui-cmd btn-submit-cmd"></button>
             </form>
 
             <!-- goto date -->
             <form action="/date" method="GET" class="form-inline" role="form" style="display: inline-block;">
-              <input id="date" name="date" class="form-control input-sm" placeholder="YYYY-MM-DD" style="margin: 7px; background-color: #222; color: #eee; display: inline-block; width: 80px; height: 30px; margin-right: 0px; min-width: 150px;">
-              <button type="submit" class="btn btn-primary fui-cmd" style="font-size: 10px; margin-left: 0px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;"></button>
+              <input id="date" name="date" placeholder="YYYY-MM-DD" class="form-control input-sm input-date">
+              <button type="submit" class="btn btn-primary btn-submit-date fui-cmd"></button>
             </form>
 
             <!-- prevSec -->
-            <li class="next"><a id="prev-section" class="prev-section fui-triangle-up" style="padding: 3px; border-radius: 50%; margin-left: 5px;"></a></li>
+            <li class="next"><a id="prev-section" class="prev-section fui-triangle-up"></a></li>
             <!-- nextSec -->
-            <li class="next"><a id="next-section" class="next-section fui-triangle-down" style="padding: 3px; border-radius: 50%;"></a></li>
+            <li class="next"><a id="next-section" class="next-section fui-triangle-down"></a></li>
             
             <!-- nextPage -->
             {% if status.curPage == status.maxPage %}
@@ -295,25 +296,25 @@
           <!-- pagination -->
           
           <!-- search -->
-          <form method="GET" name="filter" action="/" class="form-inline" role="form" style="margin-left: 8px; margin-right: 8px; margin-bottom: 6px;">
+          <form method="GET" name="filter" action="/" class="form-inline form-filter" role="form">
             <!-- from date -->
             <div class="form-group">
-              <label for="startDate" class="control-label" style="margin: 3px; color: #eee; margin-left: 15px;">From:</label>
-              <input id="startDate" name="startDate" class="form-control input-sm" placeholder="YYYY-MM-DD" value="{{ params.startDateStr }}"  style="margin: 3px; background-color: #222; color: #eee;">
+              <label for="startDate" class="control-label start-date">From:</label>
+              <input id="startDate" name="startDate" class="form-control input-sm input-dark-sm" placeholder="YYYY-MM-DD" value="{{ params.startDateStr }}">
             </div>
             <!-- to date -->
             <div class="form-group">
-              <label for="endDate" class="control-label" style="margin: 3px; margin-left: 15px; color: #eee; ">To:</label>
-              <input id="endDate" name="endDate" class="form-control input-sm" placeholder="YYYY-MM-DD" value="{{ params.endDateStr }}"  style="margin: 3px; background-color: #222; color: #eee;">
+              <label for="endDate" class="control-label label-small">To:</label>
+              <input id="endDate" name="endDate" class="form-control input-sm input-dark-sm" placeholder="YYYY-MM-DD" value="{{ params.endDateStr }}">
             </div>
             <!-- search regex -->
             <div class="form-group">
-              <label for="search" class="control-label" style="margin: 3px; margin-left: 15px; color: #eee; ">Search:</label>
-              <input id="search" name="search" class="form-control input-sm" placeholder="Key word" value="{{ params.search }}"  style="margin: 3px; background-color: #222; color: #eee;">
+              <label for="search" class="control-label label-small">Search:</label>
+              <input id="search" name="search" class="form-control input-sm input-dark-sm" placeholder="Key word" value="{{ params.search }}">
             </div>
             <!-- submit button -->
             <div class="form-group">
-              <button type="submit" class="btn btn-primary fui-search" style="font-size: 14px; margin-left: 10px !important; height: 30px; background-color: #222; color: #eee; border-color: #222; padding: 5px;"></button>
+              <button type="submit" class="btn btn-primary btn-submit fui-search"></button>
             </div>
           </form>
           <!-- search -->
