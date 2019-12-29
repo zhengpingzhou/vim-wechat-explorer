@@ -19,188 +19,171 @@
     <script src="/static/js/jquery-3.4.1.min.js"></script>
     <script src="/static/js/jquery.cookie.js"></script>
 
-	<!---------------------------------------------------------------------------------->
+    <!---------------------------------------------------------------------------------->
     <script>
-	var secId = "{{status.startSessId}}";
-	var atBottom = false;
-	var insertMode = false;
+    var secId = "{{ VIEW.startSec }}";
+    var atBottom = false;
+    var insertMode = false;
 
-	// --------------------------------------------------------------------------------
-	$(document).ready(function() {
+    // --------------------------------------------------------------------------------
+    $(document).ready(function() {
 
-		inNotebook = function() {
-			return window.location.href.includes('/notebook') || window.location.href.includes('/favorite')
-		}
+        prevSec = function() {
+            if (secId === "{{ VIEW.startSec }}") {return false;}
+            if (atBottom) {
+                atBottom = false;
+            } else {
+                secId = "sec" + (parseInt(secId.replace("sec", "")) - 1);
+            }
+            
+            $('html, body').animate({
+                scrollTop: $("#" + secId).offset().top + 1
+            }, 200);
+            return true;
+        }
 
-		prevSec = function() {
-			if (secId === "{{status.startSessId}}") {return false;}
-			if (atBottom) {
-				atBottom = false;
-			} else {
-				secId = "sec" + (parseInt(secId.replace("sec", "")) - 1);
-			}
-			
-			$('html, body').animate({
-				scrollTop: $("#" + secId).offset().top + 1
-			}, 200);
-			return true;
-		}
+        nextSec = function() {
+            if (secId === "{{ VIEW.endSec }}") {
+                $("html, body").animate({ scrollTop: $(document).height() }, 200);
+                atBottom = true;
+                return true;
+            }
+            secId = "sec" + (parseInt(secId.replace("sec", "")) + 1);
+            $('html, body').animate({
+                scrollTop: $("#" + secId).offset().top + 1
+            }, 200);
+            return true;
+        }
 
-		nextSec = function() {
-			if (secId === "{{status.endSessId}}") {
-				$("html, body").animate({ scrollTop: $(document).height() }, 200);
-				atBottom = true;
-				return true;
-			}
-			secId = "sec" + (parseInt(secId.replace("sec", "")) + 1);
-			$('html, body').animate({
-				scrollTop: $("#" + secId).offset().top + 1
-			}, 200);
-			return true;
-		}
+        findSec = function() {
+            var Wscroll = $(this).scrollTop();
+            $('section[id^="sec"]').each(function() {
+                var ThisOffset = $(this).closest('section').offset();
+                if(Wscroll >= ThisOffset.top){
+                    secId = $(this).closest('section').attr('id');
+                }
+            });
+        }
 
-		findSec = function() {
-			var Wscroll = $(this).scrollTop();
-			$('section[id^="sec"]').each(function() {
-				var ThisOffset = $(this).closest('section').offset();
-				if(Wscroll >= ThisOffset.top){
-					secId = $(this).closest('section').attr('id');
-				}
-			});
-		}
+        scrollDown = function() {
+            var Wscroll = $(this).scrollTop();
+            $('html, body').animate({
+                scrollTop: Wscroll + 200
+            }, 200);
+        }
 
-		gotoPage = function(page) {
-			if (inNotebook()) {
-				window.location.replace("/notebook?page=" + page);
-			} else {
-				window.location.replace("/?page=" + page);
-			}
-		}
+        scrollUp = function() {
+            var Wscroll = $(this).scrollTop();
+            $('html, body').animate({
+                scrollTop: Wscroll - 200
+            }, 200);
+        }
 
-		prevPage = function() {
-			page = Math.max(1, parseInt("{{status.curPage - 1}}"));
-			gotoPage(page);
-		}
+        hideControl = function() {
+            $("#control-panel").hide();
+        }
 
-		nextPage = function() {
-			page = Math.min(parseInt("{{status.maxPage}}"), parseInt("{{status.curPage + 1}}"));
-			gotoPage(page);
-		}
+        showControl = function() {
+            $("#control-panel").show();
+        }
 
-		scrollDown = function() {
-			var Wscroll = $(this).scrollTop();
-			$('html, body').animate({
-				scrollTop: Wscroll + 200
-			}, 200);
-		}
+        /*--------------------------------------------------------------------------------*/
+        gotoPage = function(page) {
+            window.location.replace("{{ VIEW.baseUrl }}?page=" + page);
+        }
 
-		scrollUp = function() {
-			var Wscroll = $(this).scrollTop();
-			$('html, body').animate({
-				scrollTop: Wscroll - 200
-			}, 200);
-		}
+        prevPage = function() {
+            page = Math.max(1, {{ VIEW.curPage - 1 }});
+            gotoPage(page);
+        }
 
-		hideControl = function() {
-			$("#control-panel").hide();
-		}
+        nextPage = function() {
+            page = Math.min({{ VIEW.maxPage }}, {{ VIEW.curPage + 1 }});
+            gotoPage(page);
+        }
 
-		showControl = function() {
-			$("#control-panel").show();
-		}
+        gotoMsg = function(msgIdx) {
+            window.location.replace('{{ VIEW.baseUrl }}?msgIdx=' + msgIdx);
+        }
 
-		gotoMsg = function(msgIdx) {
-			window.location.replace('/msg/' + msgIdx);
-		}
+        addToNotebook = function(secId) {
+            alert("确认添加: " + secId + "?");
+            $.ajax({
+                type: "POST",
+                dataType: "json"
+                url: "{{ VIEW.baseUrl }}",
+                data: {"secId": secId, "operation": "add"},
+                success: (data) => { 
+                    console.log("addToNotebook: " + secId); 
+                },
+            });
+            return false;
+        }
 
-		addToNotebook = function(sessId) {
-			alert("确认添加: " + sessId + "?");
-			//   if (inNotebook())  {
-			//     $.getJSON("/favorite?from=notebook&op=add&sec=" + sessId,
-			//       function(data) {
-			//       //do nothing
-			//     });
-			//   } else {
-			//     $.getJSON("/favorite?from=main&op=add&sec=" + sessId,
-			//       function(data) {
-			//       //do nothing
-			//     });
-			//   }
-			$.ajax({
-				type: "POST",
-				url: "/notebook",
-				data: {"sec": sessId, "op": "add"},
-				success: (data) => {
-					console.log("addToNotebook:"); 
-					console.log(data); 
-					window.location.href = "/notebook";
-				},
-				dataType: "json"
-			});
-			return false;
-		}
+        delFromNotebook = function(secIdx) {
+            alert("确认删除: " + secId + "?"); 
+            $.ajax({
+                type: "POST",
+                dataType: "json"
+                url: "{{ VIEW.baseUrl }}",
+                data: {"secId": secId, "operation": "del"},
+                success: (data) => { 
+                    console.log("delFromNotebook: " + secId); 
+                    if ("{{ VIEW.baseUrl }}" === "{{ URL_NOTEBOOK }}") {
+                        location.reload(true);
+                    }
+                },
+            });
+            return false;
+        }
 
-		delFromNotebook = function(sessId) {
-			alert("确认删除: " + sessId + "?"); 
-			if (inNotebook()) {
-				console.log('in notebook');
-				window.location.replace("/favorite?from=notebook&op=del&sec=" + sessId);
-			} else {
-				$.getJSON("/favorite?from=main&op=del&sec=" + sessId,
-				function(data) {
-					//do nothing
-				});
-				return false;
-			}
-		}
+        /*--------------------------------------------------------------------------------*/
+        keyDown = function(e) {
+            console.log(e.which);
+            if (!insertMode && !e.ctrlKey) {
+                switch(e.which) {
+                    /*h*/case 72: prevPage(); break;
+                    /*l*/case 76: nextPage(); break;
+                    /*a*/case 65: addToNotebook(secId); break;
+                    /*d*/case 68: delFromNotebook(secId); break;
+					/*n*/case 78: window.location.replace("{{ URL_NOTEBOOK }}"); break;
+                    /*0*/case 48: window.location.replace("{{ URL_MAIN }}"); break;
+                    /*----- JS ONLY --------*/
+                    /*f*/case 70: nextSec(); break;
+                    /*b*/case 66: prevSec(); break;
+                    /*j*/case 74: scrollDown(); break;
+                    /*k*/case 75: scrollUp(); break;
+                    /*slash*/case 191: showControl(); $("#search").focus(); break;
+                    /*colon*/case 186: case 59: showControl(); if (e.shiftKey) $("#date").focus(); break;
+                    /*esc*/case 27: hideControl(); break;
+                    /*left/backspace*/case 37: case 8: history.back(); break;
+                    /*rightarrow*/case 39: window.history.forward(); break;
+                    default: return; 
+                }
+                e.preventDefault();
+            } else {
+                switch(e.which) {
+                    /*esc*/case 27: $("input").blur(); break;
+                }
+            }
+        }
 
-		keyDown = function(e) {
-			console.log(e.which);
-			if (!insertMode && !e.ctrlKey) {
-				switch(e.which) {
-					/*f*/case 70: nextSec(); break;
-					/*b*/case 66: prevSec(); break;
-					/*j*/case 74: scrollDown(); break;
-					/*k*/case 75: scrollUp(); break;
-					/*h*/case 72: prevPage(); break;
-					/*l*/case 76: nextPage(); break;
-					/*slash*/case 191: showControl(); $("#search").focus(); break;
-					/*colon*/case 186: case 59: showControl(); if (e.shiftKey) $("#date").focus(); break;
-					/*esc*/case 27: hideControl(); break;
-					/*left/backspace*/case 37: case 8: history.back(); break;
-					/*rightarrow*/case 39: window.history.forward(); break;
-					/*n*/case 78: window.location.replace('/notebook'); break;
-					/*a*/case 65: addToNotebook(secId); break;
-					/*d*/case 68: delFromNotebook(secId); break;
-					/*0*/case 48: window.location.replace('/'); break;
-					default: return; 
-				}
-				e.preventDefault();
-			} else {
-				switch(e.which) {
-					/*esc*/case 27: $("input").blur(); break;
-				}
-			}
-		}
+        $(document).keydown(keyDown);
+        $(window).on('scroll', findSec);
+        $("input").focus(function() {insertMode = true; $(this).select();});
+        $("input").focusout(function() {insertMode = false; });
 
-		// --------------------------------------------------------------------------------
-		$("input").focus(function() {insertMode = true; $(this).select();});
-		$("input").focusout(function() {insertMode = false; });
-
-		$("#prev-section").click(prevSec);
-
-		$("#next-section").click(nextSec);  
-
-		$(window).on('scroll', findSec);
-
-		$(document).keydown(keyDown);
-
-		if ("{{scroll}}" != 'None') $("#{{scroll}}")[0].scrollIntoView();
-		if(performance.navigation.type == 2) location.reload(true);
-
-	});
-	</script>
-	<!---------------------------------------------------------------------------------->	
+        // refresh on history navigation
+        if(performance.navigation.type == 2) {
+            location.reload(true);
+        }
+        //scroll to target element
+        if ("{{ VIEW.anchor }}" != 'None') {
+            $("#{{ VIEW.anchor }}")[0].scrollIntoView();
+        }
+    });
+    </script>
+    <!---------------------------------------------------------------------------------->	
   </head>
 
   <body>
@@ -208,24 +191,24 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12">
-		  {% for sess in sess_list %}
-		  
-		  <!-- message -->
-          <section id="{{sess.id}}">
+          {% for sec in VIEW.secList %}
+          
+          <!-- message -->
+          <section id="{{ sec.id }}">
           <hr class="separator">
-          <p class="section-title">{{sess.number}}</p>
+          <p class="section-title">{{ sec.idx }}</p>
           <p>
-            {% for msg in sess.msg_list %}
-			  <div id="msg{{msg.idx}}" ondblclick="gotoMsg({{msg.idx}});" class="btn btn-primary main-msg">
-				<!-- profile -->
+            {% for msg in sec.msgList %}
+              <div id="msg{{ msg.idx }}" ondblclick="gotoMsg({{ msg.idx }});" class="btn btn-primary main-msg">
+                <!-- profile -->
                 <div class="main-profile">
-                    <img src="static/img/{{msg.profile}}" class="main-profile">
+                    <img src="static/img/{{ msg.profile }}" class="main-profile">
                 </div>
                 <div class="main-right">
                   <div class="main-top">
-					<!-- sender -->
+                    <!-- sender -->
                     <span class="msg-sender">{{ msg.senderName }}</span>
-					<!-- time -->
+                    <!-- time -->
                     <span class="msg-time">{{ msg.time }}</span>
                   </div>
                   <div class="msg-content">{% autoescape false %}{{  msg.content | replace('\n','<br>') }}{% endautoescape %}</div>
@@ -233,86 +216,81 @@
               </div>
             {% endfor %}
           </p>
-		  </section>
-		  
-		  <!-- add/del -->
+          </section>
+          
+          <!-- add/del -->
           <p class="notebook-btns">
-            <button onclick="addToNotebook('{{sess.id}}');" class="btn btn-primary notebook-btn fui-plus"></button>
-            <button onclick="delFromNotebook('{{sess.id}}');" class="btn btn-danger notebook-btn fui-trash"></button>
+            <button onclick="addToNotebook('{{ sec.id }}');" class="btn btn-primary notebook-btn fui-plus"></button>
+            <button onclick="delFromNotebook('{{ sec.id }}');" class="btn btn-danger notebook-btn fui-trash"></button>
           </p>
           {% endfor %}
         </div>
       </div>
     </div>
-	<!---------------------------------------------------------------------------------->
+    <!---------------------------------------------------------------------------------->
 
 
     <!-- control panel -->
-    <div id="control-panel" class="container" {% if args.hide_control == true %} style="display: none !important;" {% endif %}>
+    <div id="control-panel" class="container" {% if VIEW.hideControl == true %} style="display: none !important;" {% endif %}>
       <div class="pagination pagination-minimal fixed footer container" style="text-align: center;">
         <ul>
 
           <!-- pagination -->
             <!-- prevPage -->
-            {% if status.curPage == 1 %}
-            <li class="previous"><a href="#" class="fui-arrow-left"></a></li>
-            {% else %}
-            <li class="previous"><a href="/?page={{status.curPage - 1}}" class="fui-arrow-left"></a></li>
-            {% endif %}
+            <li class="previous"><a onclick="prevPage();" class="fui-arrow-left"></a></li>
 
             <!-- pages -->
-            {% for page in status.pages %}
-              {% if page == status.curPage %}
-              <li class="active"><a href="/?page={{page}}">{{ page }}</a></li>
+            <!-- GET <VIEW.baseUrl>?page=<page> -->
+            {% for page in VIEW.pages %}
+              {% if page == VIEW.curPage %}
+              <li class="active"><a onclick="gotoPage({{ page }})">{{ page }}</a></li>
               {% else %}
-              <li><a href="/?page={{page}}">{{ page }}</a></li>
+              <li><a onclick="gotoPage({{ page }})">{{ page }}</a></li>
               {% endif %}
             {% endfor %}
 
             <!-- goto page -->
-            <form action="/" method="GET" class="form-inline" role="form" style="display: inline-block;">
-              <input id="page" name="page" placeholder="page" value="{{status.curPage}}" class="form-control input-sm input-page" >
-              <label for="page" class="control-label label-page"> / {{status.maxPage}}</label>
+            <!-- GET <VIEW.baseUrl>?page=<page> -->
+            <form action="{{ VIEW.baseUrl }}" method="GET" class="form-inline" role="form" style="display: inline-block;">
+              <input id="page" name="page" placeholder="page" value="{{ VIEW.curPage }}" class="form-control input-sm input-page" >
+              <label for="page" class="control-label label-page"> / {{ VIEW.maxPage }}</label>
               <button type="submit" class="btn btn-primary fui-cmd btn-submit-cmd"></button>
             </form>
 
             <!-- goto date -->
-            <form action="/date" method="GET" class="form-inline" role="form" style="display: inline-block;">
+            <form action="{{ VIEW.baseUrl }}" method="GET" class="form-inline" role="form" style="display: inline-block;">
               <input id="date" name="date" placeholder="YYYY-MM-DD" class="form-control input-sm input-date">
               <button type="submit" class="btn btn-primary btn-submit-date fui-cmd"></button>
             </form>
 
             <!-- prevSec -->
-            <li class="next"><a id="prev-section" class="prev-section fui-triangle-up"></a></li>
+            <li class="next"><a onclick="prevSec();" class="prev-section fui-triangle-up"></a></li>
             <!-- nextSec -->
-            <li class="next"><a id="next-section" class="next-section fui-triangle-down"></a></li>
+            <li class="next"><a onclick="nextSec();" class="next-section fui-triangle-down"></a></li>
             
             <!-- nextPage -->
-            {% if status.curPage == status.maxPage %}
-            <li class="next"><a href="#" class="fui-arrow-right"></a></li>
-            {% else %}
-            <li class="next"><a href="/?page={{status.curPage + 1}}" class="fui-arrow-right"></a></li>
-            {% endif %}
-		  <!-- pagination -->
-		  
-		  <!---------------------------------------------------------------------------------->
+            <li class="next"><a onclick="nextPage();" class="fui-arrow-right"></a></li>
+          <!-- pagination -->
+          
+          <!---------------------------------------------------------------------------------->
           
           <!-- search -->
-          <form method="GET" name="filter" action="/" class="form-inline form-filter" role="form">
+          <!-- GET <VIEW.baseUrl>?startDate=<startDate>&endDate=<endDate>&search=<search> -->
+          <form method="GET" name="filter" action="{{ VIEW.baseUrl }}" class="form-inline form-filter" role="form">
             <!-- from date -->
             <div class="form-group">
               <label for="startDate" class="control-label start-date">From:</label>
-              <input id="startDate" name="startDate" class="form-control input-sm input-dark-sm" placeholder="YYYY-MM-DD" value="{{ params.startDateStr }}">
+              <input id="startDate" name="startDate" class="form-control input-sm input-dark-sm" placeholder="YYYY-MM-DD" value="{{ VIEW.startDateStr }}">
             </div>
             <!-- to date -->
             <div class="form-group">
               <label for="endDate" class="control-label label-small">To:</label>
-              <input id="endDate" name="endDate" class="form-control input-sm input-dark-sm" placeholder="YYYY-MM-DD" value="{{ params.endDateStr }}">
+              <input id="endDate" name="endDate" class="form-control input-sm input-dark-sm" placeholder="YYYY-MM-DD" value="{{ VIEW.endDateStr }}">
             </div>
             <!-- search regex -->
             <div class="form-group">
               <label for="search" class="control-label label-small">Search:</label>
-              <input id="search" name="search" class="form-control input-sm input-dark-sm" placeholder="Key word" value="{{ params.search }}">
+              <input id="search" name="search" class="form-control input-sm input-dark-sm" placeholder="Key word" value="{{ VIEW.search }}">
             </div>
             <!-- submit button -->
             <div class="form-group">

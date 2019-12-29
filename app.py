@@ -1,11 +1,13 @@
 import math
-import time
-import urllib
 import argparse
 from datetime import datetime, timedelta
 
-import pymongo
-from flask import Flask, request, render_template, redirect
+from flask import Flask
+from flask import request, render_template
+
+from lib.utils import Object
+from lib.utils import Database
+from lib.utils import date2str, str2date
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--my-name', type=str, default='')
@@ -17,280 +19,143 @@ parser.add_argument('--end-date', type=str, default='2100-01-01')
 parser.add_argument('--hide-control', action='store_true', help='set to hide control panel on default.')
 args = parser.parse_args()
 
-client = pymongo.MongoClient("localhost", 27017)
-db = client.wechat 
-partner = db.partner 
-notebook = db.notebook
-
-DATE_FORMAT = "%Y-%m-%d"
-
-class Object: 
-    def __init__(self, **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-params = Object(
-    startDate=datetime.strptime(args.start_date, DATE_FORMAT),
-    endDate=datetime.strptime(args.end_date, DATE_FORMAT),
-    search=''
-)
-
-status = Object(
-    curPage = 1,
-    startPage = 1,
-    endPage = 6,
-    pages = [1, 2, 3, 4, 5, 6],
-    maxPage = 100,
-    nPageVisible = 6,
-    nSessVisible = 10,
-    startSess = 1,
-    endSess = 10,
-    startSessId = 'sec1',
-    endSessId = 'sec10',
-    sess_list = None,
-    base_url = '',
-)
-
-cache = dict()
-
 app = Flask(__name__)
 
+cfg = Object(
+    URL_MAIN = '/main', ID_MAIN = 'main',
+    URL_NOTEBOOK = '/notebook', ID_NOTEBOOK = 'notebook',
+    N_SEC_PER_VIEW = 10,
+    N_PAGE_PER_VIEW = 6,
+    EMPTY_RESPONSE = '{}'
+)
+db = {
+    cfg.ID_MAIN: Database(cfg.ID_MAIN), 
+    cfg.ID_NOTEBOOK: Database(cfg.ID_NOTEBOOK)
+}
+"""
+URL_MAIN        /main
+URL_NOTEBOOK    /notebook
+VIEW.baseUrl    ['/main' or '/notebook']
 
-def merge_and_split_messages(messages):
-    sessIdx = 1
-    sess_list = []
-    msg_list = []
-    lastDate = messages[0]['datetime'] if messages else datetime(1998, 2, 15)
-    msgIdx2sessIdx = {0: 1}
-    msgIdx2msgIdx = {0: 0}
-    sentinel = {'datetime': datetime(2100, 1, 1), 'sender': '', 'content': '', 'idx': 1000000000}
+VIEW (a)
+    .secList: list<Section>
+        .idx: int (1-indexed, dynamic)
+        .id: str (='sec' + idx)
+        .msgList: list<Message>
+            .idx: int (fixed, unique)
+            .senderName: str,
+            .profile: str
+            .time: str,
+            .content: str
 
-    for i, msg in enumerate(messages + [sentinel]):
-        msg = Object(**msg)
-        msg.content = msg.content.replace('??', '[emoji]')
-        if msg.sender == '我':
-            msg.profile = args.my_profile
-            msg.senderName = args.my_name if args.my_name else msg.sender
-        else:
-            msg.profile = args.your_profile
-            msg.senderName = args.your_name if args.your_name else msg.sender
+Search DB:          GET <VIEW.baseUrl>?startDate=<startDate>&endDate=<endDate>&search=<search>
+VIEW (b)
+    .startDate: datetime,
+    .endDate: datetime,
+    .startDateStr: str,
+    .endDateStr: str,
+    .search: str,
 
-        if (msg.datetime - lastDate).seconds > 1800:
-            sess = Object(msg_list=msg_list, id=f'sec{sessIdx}', number=sessIdx)
-            if msg_list: sess_list.append(sess)
-            msg_list = []
+Goto page:          GET <VIEW.baseUrl>?page=<page>
+VIEW (c) 
+    .curPage: int
+    .maxPage: int
+    .minPage: int
+    .nextPage: int
+    .prevPage: int
+    .pages: array<int>	
 
-        sessIdx = len(sess_list) + 1
-        msgIdx2sessIdx[msg.idx] = sessIdx
+Goto msg:           GET <VIEW.baseUrl>?msgIdx=<msgIdx>
+VIEW (d)
+    (a) + (b) + (c)
 
-        if len(msg_list) > 0 and (msg_list[-1].sender == msg.sender and (msg.datetime - lastDate).seconds < 180):
-            msg_list[-1].content += '\n' + msg.content
-            msgIdx2msgIdx[msg.idx] = msg_list[-1].idx
-        else:
-            msg_list.append(msg)
-            msgIdx2msgIdx[msg.idx] = msg.idx
+Goto date:          GET <VIEW.baseUrl>?date=<dateStr>
+VIEW (e)
+    (a) + (b) + (c)
 
-        lastDate = msg.datetime
-
-    max_page = math.ceil(len(sess_list) / status.nSessVisible)
-    return sess_list, max_page, msgIdx2sessIdx, msgIdx2msgIdx
-
-
-def query(database, use_cache):
-    if use_cache and params.search.strip() == '' and (params.startDate, params.endDate) in cache:
-        print('Using cache...')
-        return cache[(params.startDate, params.endDate)]
-
-    params.startDateStr = params.startDate.strftime(DATE_FORMAT)
-    params.endDateStr = params.endDate.strftime(DATE_FORMAT)
-    sql = {'datetime': {'$lte': params.endDate, '$gte': params.startDate}}
-    if params.search != '':
-        # FIXME: currently no escape for sql/html
-        sql['content'] = {'$regex': '.*' + params.search + '.*'}
-
-    found = database.find(sql)
-    found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
-
-    ret = merge_and_split_messages(found)
-    if use_cache and params.search.strip() == '':
-        cache[(params.startDate, params.endDate)] = ret
-
-    return ret
+Add to notebook:    POST <VIEW.baseUrl> {"secIdx": secIdx, "operation": "add"}
+Del to notebook:    POST <VIEW.baseUrl> {"secIdx": secIdx, "operation": "del"}
+"""
+def Render(VIEW):
+    return render_template('template.html', 
+        URL_NOTEBOOK=cfg.URL_NOTEBOOK, URL_MAIN=cfg.URL_MAIN, VIEW=VIEW)
 
 
-def set_page(page):
-    try:
-        status.curPage = int(page)
-    except:
-        print('Invalid page:', page)
+def GoPage(viewUrl, viewId, page, anchor=None, **kwargs):
+    page = int(page)
+    result = db[viewId].query(preprocess=True, **kwargs)
 
-    if status.curPage > status.maxPage:
-        status.curPage = status.maxPage
-
-    if status.curPage < 1:
-        status.curPage = 1
-
-    status.endPage = min(status.maxPage, status.curPage + status.nPageVisible - 1)
-    status.startPage = max(1, status.endPage - status.nPageVisible + 1)
-    status.pages = list(range(status.startPage, status.endPage + 1))
-
-    status.startSess = (status.curPage - 1) * status.nSessVisible + 1
-    status.endSess = min(status.startSess + status.nSessVisible - 1, len(status.sess_list))
-    status.startSessId = "sec" + str(status.startSess)
-    status.endSessId = "sec" + str(status.endSess)
-    sess_list = status.sess_list[status.startSess - 1 : status.endSess]
-    return sess_list
-
-
-@app.route('/msg/<msgIdx>')
-def main_msg(msgIdx):
-    return redirect('/?' + urllib.parse.urlencode([
-        ('startDate', datetime.strftime(params.startDate, DATE_FORMAT)),
-        ('endDate', datetime.strftime(params.endDate, DATE_FORMAT)),
-        ('search', ''),
-        ('msgIdx', msgIdx)
-    ]))
-
-
-@app.route('/date', methods=['GET'])
-def main_date():
-    targetDate = request.args['date']
-    urlargs = [
-        ('startDate', datetime.strftime(params.startDate, DATE_FORMAT)),
-        ('endDate', datetime.strftime(params.endDate, DATE_FORMAT))]
-    try:
-        date = datetime.strptime(targetDate, DATE_FORMAT)
-        found = partner.find({'datetime': {'$lt': date + timedelta(days=1), '$gte': date}})
-        found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
-        msgIdx = found[0]['idx']
-        urlargs += [('search', '')]
-        urlargs += [('msgIdx', msgIdx)]
-    except:
-        urlargs += [('search', params.search)]
-        urlargs += [('page', status.curPage)]
-        print('Invalid date:', targetDate)
-    return redirect('/?' + urllib.parse.urlencode(urlargs))
-
-
-def feed(req, database, use_cache, force_refresh=False):
-    scroll = None
-    if status.sess_list is None:
-        status.sess_list, status.maxPage, _, _ = query(database, use_cache)
-
-    # paging
-    if 'page' in req.args:
-        sess_list = set_page(req.args['page'])
-    else:
-        sess_list = set_page(1)
+    VIEW = Object(baseUrl=viewUrl, anchor=anchor)
+    VIEW.page = page
+    VIEW.maxPage = result.maxPage
+    VIEW.minPage = 1
+    VIEW.endPage = min(VIEW.maxPage, VIEW.curPage + cfg.N_PAGE_PER_VIEW - 1)
+    VIEW.startPage = max(1, VIEW.endPage - cfg.N_PAGE_PER_VIEW + 1)
+    VIEW.pages = list(range(VIEW.startPage, VIEW.endPage + 1))
     
-    # filter
-    is_dirty = (req.base_url != status.base_url)
-    status.base_url = req.base_url
-    if force_refresh: is_dirty = True
+    VIEW.startSecIdx = (VIEW.curPage - 1) * cfg.N_SEC_PER_VIEW + 1
+    VIEW.endSecIdx = min(VIEW.startSecIdx + VIEW.N_SEC_PER_VIEW - 1, len(result.secList))
+    VIEW.startSec = "sec" + str(VIEW.startSecIdx)
+    VIEW.endSec = "sec" + str(VIEW.endSecIdx)
+    VIEW.secList = result.secList[VIEW.startSecIdx - 1 : VIEW.endSecIdx]
+    return Render(VIEW)
 
-    if 'startDate' in req.args:
-        startDate = req.args['startDate'].strip()
-        try:
-            startDate = datetime.strptime(startDate, DATE_FORMAT)
-            if startDate != params.startDate: is_dirty = True
-            params.startDate = startDate
-        except: pass
+
+def GoQuery(viewUrl, viewId, **kwargs):
+    return GoPage(viewUrl, viewId, page=1, **kwargs)
+
+
+def GoMessage(viewUrl, viewId, msgIdx):
+    result = db[viewId].query(preprocess=True, search='')
+    secIdx = result.msg2sec[msgIdx]
+    parentMsgIdx = result.msg2parent[msgIdx]
+    page = (secIdx - 1) // cfg.N_SEC_PER_VIEW + 1
+    anchor = 'msg' + str(parentMsgIdx)
+    return GoPage(viewUrl, viewId, page, anchor=anchor)
+
+
+def GoDate(viewUrl, viewId, date):
+    result = db[viewId].query(preprocess=False, date=date)
+    msgIdx = result.msgList[0]['idx']
+    return GoMessage(viewUrl, viewId, msgIdx)
+
+# --------------------------------------------------------------------------------
+def DoNotebook(viewUrl, viewId, secId, operation):
+    secIdx = int(secId.replace('sec', ''))
+    result = db[viewId].query(preprocess=True)
+    sec = result.secList[secIdx - 1]
+
+    if operation == 'add':
+        cnt = db[viewId].insertMany(sec.msgList)
+    elif operation == 'del':
+        cnt = db[viewId].deleteMany(sec.msgList)
     
-    if 'endDate' in req.args:
-        endDate = req.args['endDate'].strip()
-        try:
-            endDate = datetime.strptime(endDate, DATE_FORMAT)
-            if endDate != params.endDate: is_dirty = True
-            params.endDate = endDate
-        except: pass
+    print('op:', operation, 'sec:', secId, '#messages:', cnt)
+    return cfg.EMPTY_RESPONSE
 
-    if 'search' in req.args:
-        search = req.args['search'].strip()
-        if search != params.search: is_dirty = True
-        params.search = search
-
-    if is_dirty or 'msgIdx' in req.args:
-        status.sess_list, status.maxPage, msgIdx2sessIdx, msgIdx2msgIdx = query(database, use_cache)
-        print('INFO: sess_list reloaded: length =', len(status.sess_list))
-
-        if 'msgIdx' in req.args:
-            msgIdx = req.args['msgIdx']
-            sessIdx = msgIdx2sessIdx[int(msgIdx)]
-            page = (sessIdx - 1) // status.nSessVisible + 1
-            scroll = f'msg{msgIdx2msgIdx[int(msgIdx)]}'
-        else:
-            page = 1
-        
-        sess_list = set_page(page)
-
-    return Object(
-        sess_list = sess_list,
-        params = params,
-        status = status,
-        args = args,
-        scroll = scroll
-    )
-
-
-@app.route('/', methods=['GET'])
-def main():
-    print('INFO: in main')
-    kwargs = feed(request, database=partner, use_cache=True)
-    return render_template('template.html', **vars(kwargs))
-
-
-@app.route('/notebook', methods=['GET', 'POST'])
-def main_notebook():
-    print('INFO: in main notebook')
-
+# --------------------------------------------------------------------------------
+def Response(viewUrl, viewId):
     if request.method == 'GET':
-        kwargs = feed(request, database=notebook, use_cache=False, force_refresh=True)
-        print('main_notebook', len(kwargs.sess_list), [sess.id for sess in kwargs.sess_list])
-        return render_template('template.html', **vars(kwargs))
-
+        if 'page' in request.args:
+            return GoPage(viewUrl, viewId, int(request.args['page']))
+        elif 'msgIdx' in request.args:
+            return GoMessage(viewUrl, viewId, int(request.args['msgIdx']))
+        elif 'date' in request.args:
+            return GoDate(viewUrl, viewId, str2date(request.args['date']))
+        else:
+            return GoQuery(viewUrl, viewId, **request.args)
     else:
-        print('data:', request.data)
-        print('args:', request.args)
-        print('forms:', request.form)
-        print('json:', request.json)
-        print('request:', request)
-        return "{}"
+        return DoNotebook(viewUrl, viewId, **request.form)
 
 
-@app.route('/favorite', methods=['GET'])
-def main_favorite():
-    sessId = request.args['sec']
-    sessIdx = int(sessId.replace('sec', ''))
+@app.route(cfg.URL_MAIN, methods=['GET', 'POST'])
+def Main():
+    return Response(cfg.URL_MAIN, cfg.ID_MAIN)
 
-    # FIXME: ugly! find a better method to handle refresh
-    database = notebook if request.args['from'] == 'notebook' else partner
-    use_cache = False if request.args['from'] == 'notebook' else True
-    _ = feed(request, database=database, use_cache=use_cache, force_refresh=True)
-    
-    sess = status.sess_list[sessIdx - 1]
 
-    if request.args['op'] == 'add':
-        n_add = 0
-        for i, m in enumerate(sess.msg_list):
-            try: notebook.insert_one(vars(m)); n_add += 1
-            except: print(f'Add failed! index={i}, msgIdx={m.idx}')  
-        print(f'Del: section {sessId}, length={len(sess.msg_list)} #add={n_add}.')
-        # ajax
-        kwargs = feed(request, database=notebook, use_cache=False, force_refresh=True)
-        return render_template('template.html', **vars(kwargs))   
-
-    elif request.args['op'] == 'del':
-        n_del = 0
-        for i, m in enumerate(sess.msg_list): 
-            try: n_del += notebook.delete_one({'datetime': m.datetime}).deleted_count
-            except: print(f'Del failed! index={i}, msgIdx={m.idx}')  
-        print(f'Del: section {sessId}, length={len(sess.msg_list)} #del={n_del}.')
-        # block
-        kwargs = feed(request, database=notebook, use_cache=False, force_refresh=True)
-        return render_template('template.html', **vars(kwargs))
-
-    return 'None'
-
+@app.route(cfg.URL_NOTEBOOK, methods=['GET', 'POST'])
+def Notebook():
+    return Response(cfg.URL_NOTEBOOK, cfg.ID_NOTEBOOK)
 
 if __name__ == '__main__':
     app.run(threaded=True)
