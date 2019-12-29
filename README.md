@@ -60,9 +60,9 @@ optional arguments:
   # 对方的头像文件名，必须被放置于static/img目录下
   --your-profile 		YOUR_PROFILE
                         	filename of customized profile. must be under static/img/.
-  # 起始日期：Y-m-d格式
+  # 起始日期：YYYY-MM-DD格式
   --start-date 			START_DATE
-  # 终止日期：Y-m-d格式
+  # 终止日期：YYYY-MM-DD格式
   --end-date 			END_DATE
   # 默认隐藏控制面板
   --hide-control         set to hide control panel on default.
