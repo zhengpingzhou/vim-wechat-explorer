@@ -39,7 +39,6 @@ def build_db(filename):
     print('Building MongoDB...')
     client = pymongo.MongoClient("localhost", 27017)
     db = client.wechat
-    partner = db.partner
 
     table = []
     with open(filename, encoding='utf-8') as fin:
@@ -49,9 +48,10 @@ def build_db(filename):
             record['idx'] = i
             table.append(record)
 
-    partner.drop()
-    partner.insert_many(table)
-    partner.create_index('datetime')
+    db.main.drop()
+    db.main.insert_many(table)
+    db.main.create_index('datetime')
+    db.notebook.drop()
     print('Done.')
 
 

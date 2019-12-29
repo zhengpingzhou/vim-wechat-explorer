@@ -1,4 +1,5 @@
 import math
+import http
 import argparse
 from datetime import datetime, timedelta
 
@@ -44,7 +45,7 @@ def GoPage(viewUrl, viewId, page, anchor=None, **kwargs):
     result = db[viewId].query(preprocess=True, **kwargs)
 
     VIEW = Object(baseUrl=viewUrl, anchor=anchor)
-    VIEW.page = page
+    VIEW.curPage = page
     VIEW.maxPage = math.ceil(len(result.secList) / cfg.N_SEC_PER_VIEW)
     VIEW.minPage = 1
     VIEW.endPage = min(VIEW.maxPage, VIEW.curPage + cfg.N_PAGE_PER_VIEW - 1)
@@ -52,7 +53,7 @@ def GoPage(viewUrl, viewId, page, anchor=None, **kwargs):
     VIEW.pages = list(range(VIEW.startPage, VIEW.endPage + 1))
     
     VIEW.startSecIdx = (VIEW.curPage - 1) * cfg.N_SEC_PER_VIEW + 1
-    VIEW.endSecIdx = min(VIEW.startSecIdx + VIEW.N_SEC_PER_VIEW - 1, len(result.secList))
+    VIEW.endSecIdx = min(VIEW.startSecIdx + cfg.N_SEC_PER_VIEW - 1, len(result.secList))
     VIEW.startSec = "sec" + str(VIEW.startSecIdx)
     VIEW.endSec = "sec" + str(VIEW.endSecIdx)
     VIEW.secList = result.secList[VIEW.startSecIdx - 1 : VIEW.endSecIdx]
@@ -80,10 +81,13 @@ def GoMessage(viewUrl, viewId, msgIdx):
 
 def GoDate(viewUrl, viewId, date):
     result = db[viewId].query(preprocess=False, date=date)
-    msgIdx = result.msgList[0]['idx']
-    return GoMessage(viewUrl, viewId, msgIdx)
+    if result.msgList: 
+        msgIdx = result.msgList[0]['idx']
+        return GoMessage(viewUrl, viewId, msgIdx)
+    else:
+        return ('', http.HTTPStatus.NO_CONTENT)
 
-# --------------------------------------------------------------------------------
+
 def DoNotebook(viewUrl, viewId, secId, operation):
     secIdx = int(secId.replace('sec', ''))
     result = db[viewId].query(preprocess=True)
@@ -97,7 +101,7 @@ def DoNotebook(viewUrl, viewId, secId, operation):
     print('op:', operation, 'sec:', secId, '#messages:', cnt)
     return cfg.EMPTY_RESPONSE
 
-# --------------------------------------------------------------------------------
+
 def Response(viewUrl, viewId):
     if request.method == 'GET':
         if 'page' in request.args:

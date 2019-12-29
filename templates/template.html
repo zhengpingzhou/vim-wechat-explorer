@@ -110,7 +110,7 @@
             alert("确认添加: " + secId + "?");
             $.ajax({
                 type: "POST",
-                dataType: "json"
+                dataType: "json",
                 url: "{{ VIEW.baseUrl }}",
                 data: {"secId": secId, "operation": "add"},
                 success: (data) => { 
@@ -124,7 +124,7 @@
             alert("确认删除: " + secId + "?"); 
             $.ajax({
                 type: "POST",
-                dataType: "json"
+                dataType: "json",
                 url: "{{ VIEW.baseUrl }}",
                 data: {"secId": secId, "operation": "del"},
                 success: (data) => { 

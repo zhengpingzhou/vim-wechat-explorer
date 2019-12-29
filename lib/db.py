@@ -45,24 +45,27 @@ class Database(object):
             sql = {'datetime': {'$lt': date + timedelta(days=1), '$gte': date}}
         else:
             if 'startDate' in kwargs:
-                self._startDate = kwargs['startDate']
+                self._startDate = str2date(kwargs['startDate'])
             if 'endDate' in kwargs:
-                self._endDate = kwargs['endDate']
+                self._endDate = str2date(kwargs['endDate'])
             if 'search' in kwargs:
                 self._search = kwargs['search'].strip()
             sql = {'datetime': {'$lte': self._endDate, '$gte': self._startDate}}
             if self._search != '': sql['content'] = {'$regex': '.*' + self._search + '.*'}
 
-        found = self._db.find(sql)
-        found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
-        return self.preprocess(found) if preprocess else Object(msgList=found)
-
-
-    def preprocess(self, found):     
-        if self._search == '' and (self._startDate, self._endDate) in self._cache:
+        if preprocess and self._search == '' and (self._startDate, self._endDate) in self._cache:
             print('Using cache...')
             return self._cache[(self._startDate, self._endDate)]
 
+        found = self._db.find(sql)
+        found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
+
+        result = self.preprocess(found) if preprocess else Object(msgList=found)
+        if preprocess and self._search == '': self._cache[(self._startDate, self._endDate)] = result
+        return result
+
+
+    def preprocess(self, found):     
         result = Object(
             secList = [],
             msg2sec = {0: 1},
@@ -102,6 +105,4 @@ class Database(object):
 
             lastDate = msg.datetime
 
-        if self._search == '': 
-            self._cache[(self._startDate, self._endDate)] = result
         return result
