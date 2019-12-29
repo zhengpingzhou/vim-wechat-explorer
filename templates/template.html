@@ -11,7 +11,8 @@
     <!-- Loading Flat UI -->
     <link href="/static/css/flat-ui.css" rel="stylesheet">
 
-    <link href="/static/css/customize.css" rel="stylesheet">
+    <link href="/static/css/fonts.css" rel="stylesheet">
+    <link href="/static/css/main.css" rel="stylesheet">
 
     <link rel="shortcut icon" href="/static/img/favicon.ico">
 
@@ -23,13 +24,14 @@
     <script src="/static/js/jquery-3.4.1.min.js"></script>
     <script src="/static/js/jquery.cookie.js"></script>
 
-    <!-- customized script begins...  -->
+	<!---------------------------------------------------------------------------------->
     <script>
-		var secId = "{{status.startSessId}}";
-		var atBottom = false;
-		var insertMode = false;
+	var secId = "{{status.startSessId}}";
+	var atBottom = false;
+	var insertMode = false;
 
-		$(document).ready(function() {
+	// --------------------------------------------------------------------------------
+	$(document).ready(function() {
 
 		inNotebook = function() {
 			return window.location.href.includes('/notebook') || window.location.href.includes('/favorite')
@@ -186,6 +188,7 @@
 			}
 		}
 
+		// --------------------------------------------------------------------------------
 		$("input").focus(function() {insertMode = true; $(this).select();});
 		$("input").focusout(function() {insertMode = false; });
 
@@ -200,9 +203,9 @@
 		if ("{{scroll}}" != 'None') $("#{{scroll}}")[0].scrollIntoView();
 		if(performance.navigation.type == 2) location.reload(true);
 
-		}); 
-      
-    </script>
+	});
+	</script>
+	<!---------------------------------------------------------------------------------->	
   </head>
 
   <body>
