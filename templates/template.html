@@ -142,6 +142,7 @@
             console.log(e.which);
             if (!insertMode && !e.ctrlKey) {
                 switch(e.which) {
+                    /*----- JS + PY --------*/
                     /*h*/case 72: prevPage(); break;
                     /*l*/case 76: nextPage(); break;
                     /*a*/case 65: addToNotebook(secId); break;
@@ -231,7 +232,7 @@
 
 
     <!-- control panel -->
-    <div id="control-panel" class="container" {% if VIEW.hideControl == true %} style="display: none !important;" {% endif %}>
+    <div id="control-panel" class="container" {% if hideControl == true %} style="display: none !important;" {% endif %}>
       <div class="pagination pagination-minimal fixed footer container" style="text-align: center;">
         <ul>
 

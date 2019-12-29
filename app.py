@@ -6,17 +6,17 @@ from flask import Flask
 from flask import request, render_template
 
 from lib.utils import Object
-from lib.utils import Database
 from lib.utils import date2str, str2date
+from lib.db import Database
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--my-name', type=str, default='')
-parser.add_argument('--your-name', type=str, default='')
-parser.add_argument('--my-profile', type=str, default='me.png', help='filename of customized profile. must be under static/img/.')
-parser.add_argument('--your-profile', type=str, default='you.png', help='filename of customized profile. must be under static/img/.')
-parser.add_argument('--start-date', type=str, default='2000-01-01')
-parser.add_argument('--end-date', type=str, default='2100-01-01')
-parser.add_argument('--hide-control', action='store_true', help='set to hide control panel on default.')
+parser.add_argument('--my-name', dest='myName', type=str, default='')
+parser.add_argument('--your-name', dest='yourName', type=str, default='')
+parser.add_argument('--my-profile', dest='myProfile', type=str, default='me.png', help='filename of customized profile. must be under static/img/.')
+parser.add_argument('--your-profile', dest='yourProfile', type=str, default='you.png', help='filename of customized profile. must be under static/img/.')
+parser.add_argument('--start-date', dest='startDate', type=str, default='2000-01-01')
+parser.add_argument('--end-date', dest='endDate', type=str, default='2100-01-01')
+parser.add_argument('--hide-control', dest='hideControl', action='store_true', help='set to hide control panel on default.')
 args = parser.parse_args()
 
 app = Flask(__name__)
@@ -29,8 +29,8 @@ cfg = Object(
     EMPTY_RESPONSE = '{}'
 )
 db = {
-    cfg.ID_MAIN: Database(cfg.ID_MAIN), 
-    cfg.ID_NOTEBOOK: Database(cfg.ID_NOTEBOOK)
+    cfg.ID_MAIN: Database(args, cfg.ID_MAIN), 
+    cfg.ID_NOTEBOOK: Database(args, cfg.ID_NOTEBOOK)
 }
 """
 URL_MAIN        /main
@@ -77,8 +77,8 @@ Add to notebook:    POST <VIEW.baseUrl> {"secIdx": secIdx, "operation": "add"}
 Del to notebook:    POST <VIEW.baseUrl> {"secIdx": secIdx, "operation": "del"}
 """
 def Render(VIEW):
-    return render_template('template.html', 
-        URL_NOTEBOOK=cfg.URL_NOTEBOOK, URL_MAIN=cfg.URL_MAIN, VIEW=VIEW)
+    return render_template('template.html', VIEW=VIEW,
+        URL_NOTEBOOK=cfg.URL_NOTEBOOK, URL_MAIN=cfg.URL_MAIN, hideControl=args.hideControl)
 
 
 def GoPage(viewUrl, viewId, page, anchor=None, **kwargs):
@@ -87,7 +87,7 @@ def GoPage(viewUrl, viewId, page, anchor=None, **kwargs):
 
     VIEW = Object(baseUrl=viewUrl, anchor=anchor)
     VIEW.page = page
-    VIEW.maxPage = result.maxPage
+    VIEW.maxPage = math.ceil(len(result.secList) / cfg.N_SEC_PER_VIEW)
     VIEW.minPage = 1
     VIEW.endPage = min(VIEW.maxPage, VIEW.curPage + cfg.N_PAGE_PER_VIEW - 1)
     VIEW.startPage = max(1, VIEW.endPage - cfg.N_PAGE_PER_VIEW + 1)
@@ -98,6 +98,12 @@ def GoPage(viewUrl, viewId, page, anchor=None, **kwargs):
     VIEW.startSec = "sec" + str(VIEW.startSecIdx)
     VIEW.endSec = "sec" + str(VIEW.endSecIdx)
     VIEW.secList = result.secList[VIEW.startSecIdx - 1 : VIEW.endSecIdx]
+
+    VIEW.startDate = result.startDate
+    VIEW.endDate = result.endDate
+    VIEW.startDateStr = date2str(VIEW.startDate)
+    VIEW.endDateStr = date2str(VIEW.endDate)
+    VIEW.search = result.search
     return Render(VIEW)
 
 
@@ -141,7 +147,7 @@ def Response(viewUrl, viewId):
         elif 'msgIdx' in request.args:
             return GoMessage(viewUrl, viewId, int(request.args['msgIdx']))
         elif 'date' in request.args:
-            return GoDate(viewUrl, viewId, str2date(request.args['date']))
+            return GoDate(viewUrl, viewId, request.args['date'])
         else:
             return GoQuery(viewUrl, viewId, **request.args)
     else:
@@ -156,6 +162,7 @@ def Main():
 @app.route(cfg.URL_NOTEBOOK, methods=['GET', 'POST'])
 def Notebook():
     return Response(cfg.URL_NOTEBOOK, cfg.ID_NOTEBOOK)
+
 
 if __name__ == '__main__':
     app.run(threaded=True)
