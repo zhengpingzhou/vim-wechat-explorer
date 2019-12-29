@@ -32,50 +32,8 @@ db = {
     cfg.ID_MAIN: Database(args, cfg.ID_MAIN), 
     cfg.ID_NOTEBOOK: Database(args, cfg.ID_NOTEBOOK)
 }
-"""
-URL_MAIN        /main
-URL_NOTEBOOK    /notebook
-VIEW.baseUrl    ['/main' or '/notebook']
 
-VIEW (a)
-    .secList: list<Section>
-        .idx: int (1-indexed, dynamic)
-        .id: str (='sec' + idx)
-        .msgList: list<Message>
-            .idx: int (fixed, unique)
-            .senderName: str,
-            .profile: str
-            .time: str,
-            .content: str
 
-Search DB:          GET <VIEW.baseUrl>?startDate=<startDate>&endDate=<endDate>&search=<search>
-VIEW (b)
-    .startDate: datetime,
-    .endDate: datetime,
-    .startDateStr: str,
-    .endDateStr: str,
-    .search: str,
-
-Goto page:          GET <VIEW.baseUrl>?page=<page>
-VIEW (c) 
-    .curPage: int
-    .maxPage: int
-    .minPage: int
-    .nextPage: int
-    .prevPage: int
-    .pages: array<int>	
-
-Goto msg:           GET <VIEW.baseUrl>?msgIdx=<msgIdx>
-VIEW (d)
-    (a) + (b) + (c)
-
-Goto date:          GET <VIEW.baseUrl>?date=<dateStr>
-VIEW (e)
-    (a) + (b) + (c)
-
-Add to notebook:    POST <VIEW.baseUrl> {"secIdx": secIdx, "operation": "add"}
-Del to notebook:    POST <VIEW.baseUrl> {"secIdx": secIdx, "operation": "del"}
-"""
 def Render(VIEW):
     return render_template('template.html', VIEW=VIEW,
         URL_NOTEBOOK=cfg.URL_NOTEBOOK, URL_MAIN=cfg.URL_MAIN, hideControl=args.hideControl)
