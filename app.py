@@ -60,7 +60,7 @@ def merge_and_split_messages(messages):
     sessIdx = 1
     sess_list = []
     msg_list = []
-    lastDate = messages[0]['datetime']
+    lastDate = messages[0]['datetime'] if messages else datetime(1998, 2, 15)
     msgIdx2sessIdx = {0: 1}
     msgIdx2msgIdx = {0: 0}
     sentinel = {'datetime': datetime(2100, 1, 1), 'sender': '', 'content': '', 'idx': 1000000000}
@@ -172,7 +172,7 @@ def main_date():
     return redirect('/?' + urllib.parse.urlencode(urlargs))
 
 
-def feed(req, database, use_cache):
+def feed(req, database, use_cache, force_refresh=False):
     scroll = None
     if status.sess_list is None:
         status.sess_list, status.maxPage, _, _ = query(database, use_cache)
@@ -186,6 +186,7 @@ def feed(req, database, use_cache):
     # filter
     is_dirty = (req.base_url != status.base_url)
     status.base_url = req.base_url
+    if force_refresh: is_dirty = True
 
     if 'startDate' in req.args:
         startDate = req.args['startDate'].strip()
@@ -210,6 +211,7 @@ def feed(req, database, use_cache):
 
     if is_dirty or 'msgIdx' in req.args:
         status.sess_list, status.maxPage, msgIdx2sessIdx, msgIdx2msgIdx = query(database, use_cache)
+        print('INFO: sess_list reloaded: length =', len(status.sess_list))
 
         if 'msgIdx' in req.args:
             msgIdx = req.args['msgIdx']
@@ -240,23 +242,35 @@ def main():
 @app.route('/notebook', methods=['GET'])
 def main_notebook():
     print('INFO: in main notebook')
-    kwargs = feed(request, database=notebook, use_cache=False)
+    kwargs = feed(request, database=notebook, use_cache=False, force_refresh=True)
     print('main_notebook', len(kwargs.sess_list), [sess.id for sess in kwargs.sess_list])
     return render_template('template.html', **vars(kwargs))
 
 
 @app.route('/favorite', methods=['GET'])
 def main_favorite():
-    if 'add' in request.args:
-        sessId = request.args['add']
-        sessIdx = int(sessId.replace('sec', ''))
-        sess = status.sess_list[sessIdx - 1]
-        try: notebook.insert_many([vars(m) for m in sess.msg_list])
-        except: print('Existing messages!')
-        print('Add:', sessId, sessIdx, len(sess.msg_list))
+    sessId = request.args['sec']
+    sessIdx = int(sessId.replace('sec', ''))
+    sess = status.sess_list[sessIdx - 1]
 
-    elif 'del' in request.args:
-        pass
+    if request.args['op'] == 'add':
+        n_add = 0
+        for i, m in enumerate(sess.msg_list):
+            try: notebook.insert_one(vars(m)); n_add += 1
+            except: print(f'Add failed! index={i}, msgIdx={m.idx}')  
+        print(f'Del: section {sessId}, length={len(sess.msg_list)} #add={n_add}.')
+        # ajax
+        return 'None'   
+
+    elif request.args['op'] == 'del':
+        n_del = 0
+        for i, m in enumerate(sess.msg_list): 
+            try: n_del += notebook.delete_one({'datetime': m.datetime}).deleted_count
+            except: print(f'Del failed! index={i}, msgIdx={m.idx}')  
+        print(f'Del: section {sessId}, length={len(sess.msg_list)} #del={n_del}.')
+        # block
+        kwargs = feed(request, database=notebook, use_cache=False, force_refresh=True)
+        return render_template('template.html', **vars(kwargs))
 
     return 'None'
 

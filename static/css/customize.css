@@ -1,7 +1,179 @@
+/* noto-serif-sc-200 - chinese-simplified_latin */
+@font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 200;
+    src: url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-200.eot'); /* IE9 Compat Modes */
+    src: local('Noto Serif SC ExtraLight'), local('NotoSerifSC-ExtraLight'),
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-200.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-200.woff2') format('woff2'), /* Super Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-200.woff') format('woff'), /* Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-200.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-200.svg#NotoSerifSC') format('svg'); /* Legacy iOS */
+  }
+  /* noto-serif-sc-regular - chinese-simplified_latin */
+  @font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-regular.eot'); /* IE9 Compat Modes */
+    src: local('Noto Serif SC'), local('NotoSerifSC-Regular'),
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-regular.woff') format('woff'), /* Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-regular.svg#NotoSerifSC') format('svg'); /* Legacy iOS */
+  }
+  /* noto-serif-sc-300 - chinese-simplified_latin */
+  @font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 300;
+    src: url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-300.eot'); /* IE9 Compat Modes */
+    src: local('Noto Serif SC Light'), local('NotoSerifSC-Light'),
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-300.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-300.woff2') format('woff2'), /* Super Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-300.woff') format('woff'), /* Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-300.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-300.svg#NotoSerifSC') format('svg'); /* Legacy iOS */
+  }
+  /* noto-serif-sc-500 - chinese-simplified_latin */
+  @font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 500;
+    src: url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-500.eot'); /* IE9 Compat Modes */
+    src: local('Noto Serif SC Medium'), local('NotoSerifSC-Medium'),
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-500.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-500.woff2') format('woff2'), /* Super Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-500.woff') format('woff'), /* Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-500.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-500.svg#NotoSerifSC') format('svg'); /* Legacy iOS */
+  }
+  /* noto-serif-sc-600 - chinese-simplified_latin */
+  @font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 600;
+    src: url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-600.eot'); /* IE9 Compat Modes */
+    src: local('Noto Serif SC SemiBold'), local('NotoSerifSC-SemiBold'),
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-600.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-600.woff2') format('woff2'), /* Super Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-600.woff') format('woff'), /* Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-600.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-600.svg#NotoSerifSC') format('svg'); /* Legacy iOS */
+  }
+  /* noto-serif-sc-900 - chinese-simplified_latin */
+  @font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 900;
+    src: url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-900.eot'); /* IE9 Compat Modes */
+    src: local('Noto Serif SC Black'), local('NotoSerifSC-Black'),
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-900.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-900.woff2') format('woff2'), /* Super Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-900.woff') format('woff'), /* Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-900.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-900.svg#NotoSerifSC') format('svg'); /* Legacy iOS */
+  }
+  /* noto-serif-sc-700 - chinese-simplified_latin */
+  @font-face {
+    font-family: 'Noto Serif SC';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-700.eot'); /* IE9 Compat Modes */
+    src: local('Noto Serif SC Bold'), local('NotoSerifSC-Bold'),
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-700.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-700.woff2') format('woff2'), /* Super Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-700.woff') format('woff'), /* Modern Browsers */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-700.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('../fonts/noto-serif-sc/noto-serif-sc-v6-chinese-simplified_latin-700.svg#NotoSerifSC') format('svg'); /* Legacy iOS */
+  }
+
+  /* noto-sans-sc-100 - chinese-simplified_latin */
+@font-face {
+    font-family: 'Noto Sans SC';
+    font-style: normal;
+    font-weight: 100;
+    src: url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-100.eot'); /* IE9 Compat Modes */
+    src: local('Noto Sans SC Thin'), local('NotoSansSC-Thin'),
+         url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-100.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-100.woff2') format('woff2'), /* Super Modern Browsers */
+         url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-100.woff') format('woff'), /* Modern Browsers */
+         url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-100.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-100.svg#NotoSansSC') format('svg'); /* Legacy iOS */
+  }
+/* noto-sans-sc-300 - chinese-simplified_latin */
+@font-face {
+font-family: 'Noto Sans SC';
+font-style: normal;
+font-weight: 300;
+src: url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-300.eot'); /* IE9 Compat Modes */
+src: local('Noto Sans SC Light'), local('NotoSansSC-Light'),
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-300.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-300.woff2') format('woff2'), /* Super Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-300.woff') format('woff'), /* Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-300.ttf') format('truetype'), /* Safari, Android, iOS */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-300.svg#NotoSansSC') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-sc-regular - chinese-simplified_latin */
+@font-face {
+font-family: 'Noto Sans SC';
+font-style: normal;
+font-weight: 400;
+src: url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-regular.eot'); /* IE9 Compat Modes */
+src: local('Noto Sans SC Regular'), local('NotoSansSC-Regular'),
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-regular.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-regular.woff2') format('woff2'), /* Super Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-regular.woff') format('woff'), /* Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-regular.ttf') format('truetype'), /* Safari, Android, iOS */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-regular.svg#NotoSansSC') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-sc-500 - chinese-simplified_latin */
+@font-face {
+font-family: 'Noto Sans SC';
+font-style: normal;
+font-weight: 500;
+src: url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-500.eot'); /* IE9 Compat Modes */
+src: local('Noto Sans SC Medium'), local('NotoSansSC-Medium'),
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-500.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-500.woff2') format('woff2'), /* Super Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-500.woff') format('woff'), /* Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-500.ttf') format('truetype'), /* Safari, Android, iOS */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-500.svg#NotoSansSC') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-sc-700 - chinese-simplified_latin */
+@font-face {
+font-family: 'Noto Sans SC';
+font-style: normal;
+font-weight: 700;
+src: url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-700.eot'); /* IE9 Compat Modes */
+src: local('Noto Sans SC Bold'), local('NotoSansSC-Bold'),
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-700.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-700.woff2') format('woff2'), /* Super Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-700.woff') format('woff'), /* Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-700.ttf') format('truetype'), /* Safari, Android, iOS */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-700.svg#NotoSansSC') format('svg'); /* Legacy iOS */
+}
+/* noto-sans-sc-900 - chinese-simplified_latin */
+@font-face {
+font-family: 'Noto Sans SC';
+font-style: normal;
+font-weight: 900;
+src: url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-900.eot'); /* IE9 Compat Modes */
+src: local('Noto Sans SC Black'), local('NotoSansSC-Black'),
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-900.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-900.woff2') format('woff2'), /* Super Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-900.woff') format('woff'), /* Modern Browsers */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-900.ttf') format('truetype'), /* Safari, Android, iOS */
+        url('../fonts/noto-sans-sc/noto-sans-sc-v9-chinese-simplified_latin-900.svg#NotoSansSC') format('svg'); /* Legacy iOS */
+}
+
 html { height: 100%; overflow:auto; }
 body { height: 100%; }
 body {
 background-color: #222;
+font-family: 'Noto Serif SC', serif !important;
 }
 h3 {
 font-weight: normal;
@@ -113,4 +285,16 @@ background-color: #666;
 
 ::-moz-selection{
 background-color: #666;
+}
+
+.msg-content {
+    font-weight: 500 !important;
+}
+
+.msg-sender {
+    font-weight: 700 !important;
+}
+
+.msg-time {
+    font-weight: 500 !important;
 }

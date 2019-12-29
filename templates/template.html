@@ -9,7 +9,7 @@
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Loading Flat UI -->
-    <link href="/static/css/flat-ui.min.css" rel="stylesheet">
+    <link href="/static/css/flat-ui.css" rel="stylesheet">
 
     <link href="/static/css/customize.css" rel="stylesheet">
 
@@ -101,20 +101,18 @@
           window.location.replace('/msg/' + msgIdx);
         }
 
-        addToNotebook = function() {
-          $.getJSON('/favorite?add=' + secId,
+        addToNotebook = function(sessId) {
+          alert("确认添加: " + sessId + "?");
+          $.getJSON("/favorite?op=add&sec=" + sessId,
             function(data) {
             //do nothing
           });
           return false;
         }
 
-        delFromNotebook = function() {
-          $.getJSON('/favorite?del=' + secId,
-            function(data) {
-            //do nothing
-          });
-          return false;
+        delFromNotebook = function(sessId) {
+          alert("确认删除: " + sessId + "?"); 
+          window.location.replace("/favorite?op=del&sec=" + sessId);
         }
 
         keyDown = function(e) {
@@ -132,8 +130,9 @@
               /*esc*/case 27: hideControl(); break;
               /*left/backspace*/case 37: case 8: history.back(); break;
               /*rightarrow*/case 39: window.history.forward(); break;
-              /*a*/case 65: addToNotebook(); break;
-              /*d*/case 68: delFromNotebook(); break;
+              /*n*/case 78: window.location.replace('/notebook'); break;
+              /*a*/case 65: addToNotebook(secId); break;
+              /*d*/case 68: delFromNotebook(secId); break;
               default: return; 
             }
             e.preventDefault();
@@ -179,15 +178,17 @@
                 </div>
                 <div style="width: calc(100%-70px); margin-top: 10px; margin-bottom: 10px; padding: 0px; display: inline-block; min-width: 100%;">
                   <div style="margin-left: 0px !important; margin-top: 0px; margin-bottom: 3px;">
-                      <span style="font-weight: bold; font-size: larger;">{{ msg.senderName }}</span>
-                    <span style="margin-left: 10px; color: #ddd; font-size: smaller;">{{ msg.time }}</span>
+                    <span class="msg-sender" style="font-weight: bold; font-size: larger;">{{ msg.senderName }}</span>
+                    <span class="msg-time" style="margin-left: 10px; color: #ddd; font-size: smaller;">{{ msg.time }}</span>
                   </div>
-                  <div style="word-break: break-all !important; max-width: 90% !important; display: inline-block; white-space:normal; line-height: 1.5;">{% autoescape false %}{{  msg.content | replace('\n','<br>') }}{% endautoescape %}</div>
+                  <div class="msg-content" style="word-break: break-all !important; max-width: 90% !important; display: inline-block; white-space:normal; line-height: 1.5;">{% autoescape false %}{{  msg.content | replace('\n','<br>') }}{% endautoescape %}</div>
                 </div>
               </div>
             {% endfor %}
           </p>
           </section>
+          <button onclick="addToNotebook('{{sess.id}}');" class="btn btn-primary fui-plus" style="background-color: #333; font-size: 12px; border-color: #222; text-align: center;"></button>
+          <button onclick="delFromNotebook('{{sess.id}}');" class="btn btn-danger fui-trash" style="background-color: #333; font-size: 12px; border-color: #222; text-align: center;"></button>
           {% endfor %}
         </div>
       </div>
