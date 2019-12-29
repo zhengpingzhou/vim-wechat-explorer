@@ -28,6 +28,10 @@
       var insertMode = false;
 
       $(document).ready(function() {
+        inNotebook = function() {
+          return window.location.href.includes('/notebook') || window.location.href.includes('/favorite')
+        }
+
         prevSec = function() {
           if (secId === "{{status.startSessId}}") {return false;}
           if (atBottom) {
@@ -65,14 +69,22 @@
           });
         }
 
+        gotoPage = function(page) {
+          if (inNotebook()) {
+            window.location.replace("/notebook?page=" + page);
+          } else {
+            window.location.replace("/?page=" + page);
+          }
+        }
+
         prevPage = function() {
           page = Math.max(1, parseInt("{{status.curPage - 1}}"));
-          window.location.replace("/?page=" + page);
+          gotoPage(page);
         }
 
         nextPage = function() {
           page = Math.min(parseInt("{{status.maxPage}}"), parseInt("{{status.curPage + 1}}"));
-          window.location.replace("/?page=" + page);
+          gotoPage(page);
         }
 
         scrollDown = function() {
@@ -103,7 +115,7 @@
 
         addToNotebook = function(sessId) {
           alert("确认添加: " + sessId + "?");
-          if (window.location.href.includes('/notebook') || window.location.href.includes('/favorite'))  {
+          if (inNotebook())  {
             $.getJSON("/favorite?from=notebook&op=add&sec=" + sessId,
               function(data) {
               //do nothing
@@ -119,7 +131,7 @@
 
         delFromNotebook = function(sessId) {
           alert("确认删除: " + sessId + "?"); 
-          if (window.location.href.includes('/notebook') || window.location.href.includes('/favorite')) {
+          if (inNotebook()) {
             console.log('in notebook');
             window.location.replace("/favorite?from=notebook&op=del&sec=" + sessId);
           } else {
