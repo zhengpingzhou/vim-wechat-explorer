@@ -22,177 +22,185 @@
     <![endif]-->
     <script src="/static/js/jquery-3.4.1.min.js"></script>
     <script src="/static/js/jquery.cookie.js"></script>
+
+    <!-- customized script begins...  -->
     <script>
-      var secId = "{{status.startSessId}}";
-      var atBottom = false;
-      var insertMode = false;
+		var secId = "{{status.startSessId}}";
+		var atBottom = false;
+		var insertMode = false;
 
-      $(document).ready(function() {
-        inNotebook = function() {
-          return window.location.href.includes('/notebook') || window.location.href.includes('/favorite')
-        }
+		$(document).ready(function() {
 
-        prevSec = function() {
-          if (secId === "{{status.startSessId}}") {return false;}
-          if (atBottom) {
-            atBottom = false;
-          } else {
-            secId = "sec" + (parseInt(secId.replace("sec", "")) - 1);
-          }
-          
-          $('html, body').animate({
-              scrollTop: $("#" + secId).offset().top + 1
-          }, 200);
-          return true;
-        }
+		inNotebook = function() {
+			return window.location.href.includes('/notebook') || window.location.href.includes('/favorite')
+		}
 
-        nextSec = function() {
-          if (secId === "{{status.endSessId}}") {
-            $("html, body").animate({ scrollTop: $(document).height() }, 200);
-            atBottom = true;
-            return true;
-          }
-          secId = "sec" + (parseInt(secId.replace("sec", "")) + 1);
-          $('html, body').animate({
-              scrollTop: $("#" + secId).offset().top + 1
-          }, 200);
-          return true;
-        }
+		prevSec = function() {
+			if (secId === "{{status.startSessId}}") {return false;}
+			if (atBottom) {
+				atBottom = false;
+			} else {
+				secId = "sec" + (parseInt(secId.replace("sec", "")) - 1);
+			}
+			
+			$('html, body').animate({
+				scrollTop: $("#" + secId).offset().top + 1
+			}, 200);
+			return true;
+		}
 
-        findSec = function() {
-          var Wscroll = $(this).scrollTop();
-            $('section[id^="sec"]').each(function(){
-              var ThisOffset = $(this).closest('section').offset();
-              if(Wscroll >= ThisOffset.top){
-                  secId = $(this).closest('section').attr('id');
-            }
-          });
-        }
+		nextSec = function() {
+			if (secId === "{{status.endSessId}}") {
+				$("html, body").animate({ scrollTop: $(document).height() }, 200);
+				atBottom = true;
+				return true;
+			}
+			secId = "sec" + (parseInt(secId.replace("sec", "")) + 1);
+			$('html, body').animate({
+				scrollTop: $("#" + secId).offset().top + 1
+			}, 200);
+			return true;
+		}
 
-        gotoPage = function(page) {
-          if (inNotebook()) {
-            window.location.replace("/notebook?page=" + page);
-          } else {
-            window.location.replace("/?page=" + page);
-          }
-        }
+		findSec = function() {
+			var Wscroll = $(this).scrollTop();
+			$('section[id^="sec"]').each(function() {
+				var ThisOffset = $(this).closest('section').offset();
+				if(Wscroll >= ThisOffset.top){
+					secId = $(this).closest('section').attr('id');
+				}
+			});
+		}
 
-        prevPage = function() {
-          page = Math.max(1, parseInt("{{status.curPage - 1}}"));
-          gotoPage(page);
-        }
+		gotoPage = function(page) {
+			if (inNotebook()) {
+				window.location.replace("/notebook?page=" + page);
+			} else {
+				window.location.replace("/?page=" + page);
+			}
+		}
 
-        nextPage = function() {
-          page = Math.min(parseInt("{{status.maxPage}}"), parseInt("{{status.curPage + 1}}"));
-          gotoPage(page);
-        }
+		prevPage = function() {
+			page = Math.max(1, parseInt("{{status.curPage - 1}}"));
+			gotoPage(page);
+		}
 
-        scrollDown = function() {
-          var Wscroll = $(this).scrollTop();
-          $('html, body').animate({
-              scrollTop: Wscroll + 200
-          }, 200);
-        }
+		nextPage = function() {
+			page = Math.min(parseInt("{{status.maxPage}}"), parseInt("{{status.curPage + 1}}"));
+			gotoPage(page);
+		}
 
-        scrollUp = function() {
-          var Wscroll = $(this).scrollTop();
-          $('html, body').animate({
-              scrollTop: Wscroll - 200
-          }, 200);
-        }
+		scrollDown = function() {
+			var Wscroll = $(this).scrollTop();
+			$('html, body').animate({
+				scrollTop: Wscroll + 200
+			}, 200);
+		}
 
-        hideControl = function() {
-          $("#control-panel").hide();
-        }
+		scrollUp = function() {
+			var Wscroll = $(this).scrollTop();
+			$('html, body').animate({
+				scrollTop: Wscroll - 200
+			}, 200);
+		}
 
-        showControl = function() {
-          $("#control-panel").show();
-        }
+		hideControl = function() {
+			$("#control-panel").hide();
+		}
 
-        gotoMsg = function(msgIdx) {
-          window.location.replace('/msg/' + msgIdx);
-        }
+		showControl = function() {
+			$("#control-panel").show();
+		}
 
-        addToNotebook = function(sessId) {
-          alert("确认添加: " + sessId + "?");
-        //   if (inNotebook())  {
-        //     $.getJSON("/favorite?from=notebook&op=add&sec=" + sessId,
-        //       function(data) {
-        //       //do nothing
-        //     });
-        //   } else {
-        //     $.getJSON("/favorite?from=main&op=add&sec=" + sessId,
-        //       function(data) {
-        //       //do nothing
-        //     });
-        //   }
-          $.ajax({
-						type: "POST",
-						url: "/notebook",
-						data: {"sec": sessId, "op": "add"},
-						success: (data) => {console.log("addToNotebook:"); console.log(data);},
-						dataType: "json"
-					});
-          return false;
-        }
+		gotoMsg = function(msgIdx) {
+			window.location.replace('/msg/' + msgIdx);
+		}
 
-        delFromNotebook = function(sessId) {
-          alert("确认删除: " + sessId + "?"); 
-          if (inNotebook()) {
-            console.log('in notebook');
-            window.location.replace("/favorite?from=notebook&op=del&sec=" + sessId);
-          } else {
-            $.getJSON("/favorite?from=main&op=del&sec=" + sessId,
-              function(data) {
-              //do nothing
-            });
-            return false;
-          }
-        }
+		addToNotebook = function(sessId) {
+			alert("确认添加: " + sessId + "?");
+			//   if (inNotebook())  {
+			//     $.getJSON("/favorite?from=notebook&op=add&sec=" + sessId,
+			//       function(data) {
+			//       //do nothing
+			//     });
+			//   } else {
+			//     $.getJSON("/favorite?from=main&op=add&sec=" + sessId,
+			//       function(data) {
+			//       //do nothing
+			//     });
+			//   }
+			$.ajax({
+				type: "POST",
+				url: "/notebook",
+				data: {"sec": sessId, "op": "add"},
+				success: (data) => {
+					console.log("addToNotebook:"); 
+					console.log(data); 
+					window.location.href = "/notebook";
+				},
+				dataType: "json"
+			});
+			return false;
+		}
 
-        keyDown = function(e) {
-          console.log(e.which);
-          if (!insertMode && !e.ctrlKey) {
-            switch(e.which) {
-              /*f*/case 70: nextSec(); break;
-              /*b*/case 66: prevSec(); break;
-              /*j*/case 74: scrollDown(); break;
-              /*k*/case 75: scrollUp(); break;
-              /*h*/case 72: prevPage(); break;
-              /*l*/case 76: nextPage(); break;
-              /*slash*/case 191: showControl(); $("#search").focus(); break;
-              /*colon*/case 186: case 59: showControl(); if (e.shiftKey) $("#date").focus(); break;
-              /*esc*/case 27: hideControl(); break;
-              /*left/backspace*/case 37: case 8: history.back(); break;
-              /*rightarrow*/case 39: window.history.forward(); break;
-              /*n*/case 78: window.location.replace('/notebook'); break;
-              /*a*/case 65: addToNotebook(secId); break;
-              /*d*/case 68: delFromNotebook(secId); break;
-              /*0*/case 48: window.location.replace('/'); break;
-              default: return; 
-            }
-            e.preventDefault();
-          } else {
-            switch(e.which) {
-              /*esc*/case 27: $("input").blur(); break;
-            }
-          }
-        }
+		delFromNotebook = function(sessId) {
+			alert("确认删除: " + sessId + "?"); 
+			if (inNotebook()) {
+				console.log('in notebook');
+				window.location.replace("/favorite?from=notebook&op=del&sec=" + sessId);
+			} else {
+				$.getJSON("/favorite?from=main&op=del&sec=" + sessId,
+				function(data) {
+					//do nothing
+				});
+				return false;
+			}
+		}
 
-        $("input").focus(function() {insertMode = true; $(this).select();});
-        $("input").focusout(function() {insertMode = false; });
+		keyDown = function(e) {
+			console.log(e.which);
+			if (!insertMode && !e.ctrlKey) {
+				switch(e.which) {
+					/*f*/case 70: nextSec(); break;
+					/*b*/case 66: prevSec(); break;
+					/*j*/case 74: scrollDown(); break;
+					/*k*/case 75: scrollUp(); break;
+					/*h*/case 72: prevPage(); break;
+					/*l*/case 76: nextPage(); break;
+					/*slash*/case 191: showControl(); $("#search").focus(); break;
+					/*colon*/case 186: case 59: showControl(); if (e.shiftKey) $("#date").focus(); break;
+					/*esc*/case 27: hideControl(); break;
+					/*left/backspace*/case 37: case 8: history.back(); break;
+					/*rightarrow*/case 39: window.history.forward(); break;
+					/*n*/case 78: window.location.replace('/notebook'); break;
+					/*a*/case 65: addToNotebook(secId); break;
+					/*d*/case 68: delFromNotebook(secId); break;
+					/*0*/case 48: window.location.replace('/'); break;
+					default: return; 
+				}
+				e.preventDefault();
+			} else {
+				switch(e.which) {
+					/*esc*/case 27: $("input").blur(); break;
+				}
+			}
+		}
 
-        $("#prev-section").click(prevSec);
-        
-        $("#next-section").click(nextSec);  
+		$("input").focus(function() {insertMode = true; $(this).select();});
+		$("input").focusout(function() {insertMode = false; });
 
-        $(window).on('scroll', findSec);
+		$("#prev-section").click(prevSec);
 
-        $(document).keydown(keyDown);
+		$("#next-section").click(nextSec);  
 
-        if ("{{scroll}}" != 'None') $("#{{scroll}}")[0].scrollIntoView();
-        if(performance.navigation.type == 2) location.reload(true);
-      });
+		$(window).on('scroll', findSec);
+
+		$(document).keydown(keyDown);
+
+		if ("{{scroll}}" != 'None') $("#{{scroll}}")[0].scrollIntoView();
+		if(performance.navigation.type == 2) location.reload(true);
+
+		}); 
       
     </script>
   </head>

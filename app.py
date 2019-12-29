@@ -254,7 +254,7 @@ def main_notebook():
         print('forms:', request.form)
         print('json:', request.json)
         print('request:', request)
-        return {}
+        return "{}"
 
 
 @app.route('/favorite', methods=['GET'])
