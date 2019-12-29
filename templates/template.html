@@ -5,15 +5,10 @@
     <title>WeChat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Loading Bootstrap -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Loading Flat UI -->
     <link href="/static/css/flat-ui.css" rel="stylesheet">
-
     <link href="/static/css/fonts.css" rel="stylesheet">
     <link href="/static/css/main.css" rel="stylesheet">
-
     <link rel="shortcut icon" href="/static/img/favicon.ico">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
@@ -213,30 +208,37 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12">
-          {% for sess in sess_list %}
+		  {% for sess in sess_list %}
+		  
+		  <!-- message -->
           <section id="{{sess.id}}">
-          <hr style="border-top: 1px solid #333; margin: auto; width: 30%;">
-          <p style="color: #555; text-align: center;">{{sess.number}}</p>
+          <hr class="separator">
+          <p class="section-title">{{sess.number}}</p>
           <p>
             {% for msg in sess.msg_list %}
-              <div id="msg{{msg.idx}}" ondblclick="gotoMsg({{msg.idx}});" class="btn btn-primary" style="width: 100%; padding-top: 0px; padding-bottom: 0px; display:table; height:inherit">
-                <div style="width: 70px; min-height: 100%; height: 100%; margin: 0px; padding: 0px !important; float: left;">
-                    <img src="static/img/{{msg.profile}}" style="border-radius: 10%; width: 50px; height: 50px; margin-top: 10px; margin-bottom: 10px; padding: 0px !important; vertical-align: top;">
+			  <div id="msg{{msg.idx}}" ondblclick="gotoMsg({{msg.idx}});" class="btn btn-primary main-msg">
+				<!-- profile -->
+                <div class="main-profile">
+                    <img src="static/img/{{msg.profile}}" class="main-profile">
                 </div>
-                <div style="width: calc(100%-70px); margin-top: 10px; margin-bottom: 10px; padding: 0px; display: inline-block; min-width: 100%;">
-                  <div style="margin-left: 0px !important; margin-top: 0px; margin-bottom: 3px;">
-                    <span class="msg-sender" style="font-weight: bold; font-size: larger;">{{ msg.senderName }}</span>
-                    <span class="msg-time" style="margin-left: 10px; color: #ddd; font-size: smaller;">{{ msg.time }}</span>
+                <div class="main-right">
+                  <div class="main-top">
+					<!-- sender -->
+                    <span class="msg-sender">{{ msg.senderName }}</span>
+					<!-- time -->
+                    <span class="msg-time">{{ msg.time }}</span>
                   </div>
-                  <div class="msg-content" style="word-break: break-all !important; max-width: 90% !important; display: inline-block; white-space:normal; line-height: 1.5;">{% autoescape false %}{{  msg.content | replace('\n','<br>') }}{% endautoescape %}</div>
+                  <div class="msg-content">{% autoescape false %}{{  msg.content | replace('\n','<br>') }}{% endautoescape %}</div>
                 </div>
               </div>
             {% endfor %}
           </p>
-          </section>
-          <p style="text-align: right; margin: 0px;">
-            <button onclick="addToNotebook('{{sess.id}}');" class="btn btn-primary fui-plus" style="background-color: #333; font-size: 12px; border-color: #222; text-align: center;"></button>
-            <button onclick="delFromNotebook('{{sess.id}}');" class="btn btn-danger fui-trash" style="background-color: #333; font-size: 12px; border-color: #222; text-align: center;"></button>
+		  </section>
+		  
+		  <!-- add/del -->
+          <p class="notebook-btns">
+            <button onclick="addToNotebook('{{sess.id}}');" class="btn btn-primary notebook-btn fui-plus"></button>
+            <button onclick="delFromNotebook('{{sess.id}}');" class="btn btn-danger notebook-btn fui-trash"></button>
           </p>
           {% endfor %}
         </div>
