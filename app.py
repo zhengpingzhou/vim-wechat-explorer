@@ -239,12 +239,22 @@ def main():
     return render_template('template.html', **vars(kwargs))
 
 
-@app.route('/notebook', methods=['GET'])
+@app.route('/notebook', methods=['GET', 'POST'])
 def main_notebook():
     print('INFO: in main notebook')
-    kwargs = feed(request, database=notebook, use_cache=False, force_refresh=True)
-    print('main_notebook', len(kwargs.sess_list), [sess.id for sess in kwargs.sess_list])
-    return render_template('template.html', **vars(kwargs))
+
+    if request.method == 'GET':
+        kwargs = feed(request, database=notebook, use_cache=False, force_refresh=True)
+        print('main_notebook', len(kwargs.sess_list), [sess.id for sess in kwargs.sess_list])
+        return render_template('template.html', **vars(kwargs))
+
+    else:
+        print('data:', request.data)
+        print('args:', request.args)
+        print('forms:', request.form)
+        print('json:', request.json)
+        print('request:', request)
+        return {}
 
 
 @app.route('/favorite', methods=['GET'])

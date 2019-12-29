@@ -115,17 +115,24 @@
 
         addToNotebook = function(sessId) {
           alert("确认添加: " + sessId + "?");
-          if (inNotebook())  {
-            $.getJSON("/favorite?from=notebook&op=add&sec=" + sessId,
-              function(data) {
-              //do nothing
-            });
-          } else {
-            $.getJSON("/favorite?from=main&op=add&sec=" + sessId,
-              function(data) {
-              //do nothing
-            });
-          }
+        //   if (inNotebook())  {
+        //     $.getJSON("/favorite?from=notebook&op=add&sec=" + sessId,
+        //       function(data) {
+        //       //do nothing
+        //     });
+        //   } else {
+        //     $.getJSON("/favorite?from=main&op=add&sec=" + sessId,
+        //       function(data) {
+        //       //do nothing
+        //     });
+        //   }
+          $.ajax({
+						type: "POST",
+						url: "/notebook",
+						data: {"sec": sessId, "op": "add"},
+						success: (data) => {console.log("addToNotebook:"); console.log(data);},
+						dataType: "json"
+					});
           return false;
         }
 
