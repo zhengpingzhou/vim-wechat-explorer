@@ -70,10 +70,10 @@ def merge_and_split_messages(messages):
         msg.content = msg.content.replace('??', '[emoji]')
         if msg.sender == '我':
             msg.profile = args.my_profile
-            if args.my_name: msg.senderName = args.my_name
+            msg.senderName = args.my_name if args.my_name else msg.sender
         else:
             msg.profile = args.your_profile
-            if args.your_name: msg.senderName = args.your_name
+            msg.senderName = args.your_name if args.your_name else msg.sender
 
         if (msg.datetime - lastDate).seconds > 1800:
             sess = Object(msg_list=msg_list, id=f'sec{sessIdx}', number=sessIdx)
@@ -251,6 +251,12 @@ def main_notebook():
 def main_favorite():
     sessId = request.args['sec']
     sessIdx = int(sessId.replace('sec', ''))
+
+    # FIXME: ugly! find a better method to handle refresh
+    database = notebook if request.args['from'] == 'notebook' else partner
+    use_cache = False if request.args['from'] == 'notebook' else True
+    _ = feed(request, database=database, use_cache=use_cache, force_refresh=True)
+    
     sess = status.sess_list[sessIdx - 1]
 
     if request.args['op'] == 'add':
@@ -260,7 +266,8 @@ def main_favorite():
             except: print(f'Add failed! index={i}, msgIdx={m.idx}')  
         print(f'Del: section {sessId}, length={len(sess.msg_list)} #add={n_add}.')
         # ajax
-        return 'None'   
+        kwargs = feed(request, database=notebook, use_cache=False, force_refresh=True)
+        return render_template('template.html', **vars(kwargs))   
 
     elif request.args['op'] == 'del':
         n_del = 0

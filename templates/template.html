@@ -103,16 +103,32 @@
 
         addToNotebook = function(sessId) {
           alert("确认添加: " + sessId + "?");
-          $.getJSON("/favorite?op=add&sec=" + sessId,
-            function(data) {
-            //do nothing
-          });
+          if (window.location.href.includes('/notebook') || window.location.href.includes('/favorite'))  {
+            $.getJSON("/favorite?from=notebook&op=add&sec=" + sessId,
+              function(data) {
+              //do nothing
+            });
+          } else {
+            $.getJSON("/favorite?from=main&op=add&sec=" + sessId,
+              function(data) {
+              //do nothing
+            });
+          }
           return false;
         }
 
         delFromNotebook = function(sessId) {
           alert("确认删除: " + sessId + "?"); 
-          window.location.replace("/favorite?op=del&sec=" + sessId);
+          if (window.location.href.includes('/notebook') || window.location.href.includes('/favorite')) {
+            console.log('in notebook');
+            window.location.replace("/favorite?from=notebook&op=del&sec=" + sessId);
+          } else {
+            $.getJSON("/favorite?from=main&op=del&sec=" + sessId,
+              function(data) {
+              //do nothing
+            });
+            return false;
+          }
         }
 
         keyDown = function(e) {
@@ -133,6 +149,7 @@
               /*n*/case 78: window.location.replace('/notebook'); break;
               /*a*/case 65: addToNotebook(secId); break;
               /*d*/case 68: delFromNotebook(secId); break;
+              /*0*/case 48: window.location.replace('/'); break;
               default: return; 
             }
             e.preventDefault();
@@ -172,7 +189,7 @@
           <p style="color: #555; text-align: center;">{{sess.number}}</p>
           <p>
             {% for msg in sess.msg_list %}
-              <div id="msg{{msg.idx}}" ondblclick="gotoMsg({{msg.idx}});" class="btn {% if msg.sender != '我' %} btn-primary {% else %} btn-default {% endif %}" style="width: 100%; padding-top: 0px; padding-bottom: 0px; display:table; height:inherit">
+              <div id="msg{{msg.idx}}" ondblclick="gotoMsg({{msg.idx}});" class="btn btn-primary" style="width: 100%; padding-top: 0px; padding-bottom: 0px; display:table; height:inherit">
                 <div style="width: 70px; min-height: 100%; height: 100%; margin: 0px; padding: 0px !important; float: left;">
                     <img src="static/img/{{msg.profile}}" style="border-radius: 10%; width: 50px; height: 50px; margin-top: 10px; margin-bottom: 10px; padding: 0px !important; vertical-align: top;">
                 </div>
@@ -187,8 +204,10 @@
             {% endfor %}
           </p>
           </section>
-          <button onclick="addToNotebook('{{sess.id}}');" class="btn btn-primary fui-plus" style="background-color: #333; font-size: 12px; border-color: #222; text-align: center;"></button>
-          <button onclick="delFromNotebook('{{sess.id}}');" class="btn btn-danger fui-trash" style="background-color: #333; font-size: 12px; border-color: #222; text-align: center;"></button>
+          <p style="text-align: right; margin: 0px;">
+            <button onclick="addToNotebook('{{sess.id}}');" class="btn btn-primary fui-plus" style="background-color: #333; font-size: 12px; border-color: #222; text-align: center;"></button>
+            <button onclick="delFromNotebook('{{sess.id}}');" class="btn btn-danger fui-trash" style="background-color: #333; font-size: 12px; border-color: #222; text-align: center;"></button>
+          </p>
           {% endfor %}
         </div>
       </div>
@@ -247,7 +266,7 @@
           <form method="GET" name="filter" action="/" class="form-inline" role="form" style="margin-left: 8px; margin-right: 8px; margin-bottom: 6px;">
             <!-- from date -->
             <div class="form-group">
-              <label for="startDate" class="control-label" style="margin: 3px; color: #eee; ">From:</label>
+              <label for="startDate" class="control-label" style="margin: 3px; color: #eee; margin-left: 15px;">From:</label>
               <input id="startDate" name="startDate" class="form-control input-sm" placeholder="YYYY-MM-DD" value="{{ params.startDateStr }}"  style="margin: 3px; background-color: #222; color: #eee;">
             </div>
             <!-- to date -->
