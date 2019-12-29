@@ -106,29 +106,29 @@
             window.location.replace('{{ VIEW.baseUrl }}?msgIdx=' + msgIdx);
         }
 
-        addToNotebook = function(secId) {
-            if (!alert("确认添加: " + secId + "?")) return false;
+        addToNotebook = function(targetSecId) {
+            if (!confirm("确认添加: " + targetSecId + "?")) return false;
             $.ajax({
                 type: "POST",
                 dataType: "json",
                 url: "{{ VIEW.baseUrl }}",
-                data: {"secId": secId, "operation": "add"},
+                data: {"secId": targetSecId, "operation": "add"},
                 success: (data) => { 
-                    console.log("addToNotebook: " + secId); 
+                    console.log("addToNotebook: " + targetSecId); 
                 },
             });
             return false;
         }
 
-        delFromNotebook = function(secIdx) {
-            if (!alert("确认删除: " + secId + "?")) return false;
+        delFromNotebook = function(targetSecId) {
+            if (!confirm("确认删除: " + targetSecId + "?")) return false;
             $.ajax({
                 type: "POST",
                 dataType: "json",
                 url: "{{ VIEW.baseUrl }}",
-                data: {"secId": secId, "operation": "del"},
+                data: {"secId": targetSecId, "operation": "del"},
                 success: (data) => { 
-                    console.log("delFromNotebook: " + secId); 
+                    console.log("delFromNotebook: " + targetSecId); 
                     if ("{{ VIEW.baseUrl }}" === "{{ URL_NOTEBOOK }}") {
                         location.reload(true);
                     }
