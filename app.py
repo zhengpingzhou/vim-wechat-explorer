@@ -71,12 +71,12 @@ def GoQuery(viewUrl, viewId, **kwargs):
 
 
 def GoMessage(viewUrl, viewId, msgIdx):
-    result = db[viewId].query(preprocess=True, search='')
+    result = db[cfg.ID_MAIN].query(preprocess=True, search='')
     secIdx = result.msg2sec[msgIdx]
     parentMsgIdx = result.msg2parent[msgIdx]
     page = (secIdx - 1) // cfg.N_SEC_PER_VIEW + 1
     anchor = 'msg' + str(parentMsgIdx)
-    return GoPage(viewUrl, viewId, page, anchor=anchor)
+    return GoPage(cfg.URL_MAIN, cfg.ID_MAIN, page, anchor=anchor)
 
 
 def GoDate(viewUrl, viewId, date):

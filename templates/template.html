@@ -174,10 +174,6 @@
         $("input").focus(function() {insertMode = true; $(this).select();});
         $("input").focusout(function() {insertMode = false; });
 
-        // refresh on history navigation
-        if(performance.navigation.type == 2) {
-            location.reload(true);
-        }
         //scroll to target element
         if ("{{ VIEW.anchor }}" != 'None') {
             $("#{{ VIEW.anchor }}")[0].scrollIntoView();
