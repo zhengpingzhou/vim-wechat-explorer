@@ -20,6 +20,20 @@
     <script src="/static/js/jquery.cookie.js"></script>
 
     <!---------------------------------------------------------------------------------->
+    <style>
+    {% if args.font == "serif" %}
+      body { font-family: 'Noto Serif SC', serif !important; }
+      .msg-sender { font-weight: 700 !important; }
+      .msg-content { font-weight: 500 !important; }
+      .msg-time { font-weight: 500 !important; }
+    {% else %}
+      body { font-family: sans-serif !important; }
+      .msg-sender { font-weight: 500 !important; }
+      .msg-content { font-weight: 400 !important; }
+      .msg-time { font-weight: 400 !important; }
+    {% endif %}
+    </style>
+
     <script>
     var secId = "{{ VIEW.startSec }}";
     var atBottom = false;
@@ -147,7 +161,7 @@
                     /*l*/case 76: nextPage(); break;
                     /*a*/case 65: addToNotebook(secId); break;
                     /*d*/case 68: delFromNotebook(secId); break;
-					/*n*/case 78: window.location.replace("{{ URL_NOTEBOOK }}"); break;
+					          /*n*/case 78: window.location.replace("{{ URL_NOTEBOOK }}"); break;
                     /*0*/case 48: window.location.replace("{{ URL_MAIN }}"); break;
                     /*----- JS ONLY --------*/
                     /*f*/case 70: nextSec(); break;
@@ -228,7 +242,7 @@
 
 
     <!-- control panel -->
-    <div id="control-panel" class="container" {% if hideControl == true %} style="display: none !important;" {% endif %}>
+    <div id="control-panel" class="container" {% if args.hideControl == true %} style="display: none !important;" {% endif %}>
       <div class="pagination pagination-minimal fixed footer container" style="text-align: center;">
         <ul>
 

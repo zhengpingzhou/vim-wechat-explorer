@@ -18,6 +18,7 @@ parser.add_argument('--your-profile', dest='yourProfile', type=str, default='you
 parser.add_argument('--start-date', dest='startDate', type=str, default='2000-01-01')
 parser.add_argument('--end-date', dest='endDate', type=str, default='2100-01-01')
 parser.add_argument('--hide-control', dest='hideControl', action='store_true', help='set to hide control panel on default.')
+parser.add_argument('--font', dest='font', type=str, default='serif', choices=['serif', 'sans'])
 args = parser.parse_args()
 
 app = Flask(__name__)
@@ -36,8 +37,8 @@ db = {
 
 
 def Render(VIEW):
-    return render_template('template.html', VIEW=VIEW,
-        URL_NOTEBOOK=cfg.URL_NOTEBOOK, URL_MAIN=cfg.URL_MAIN, hideControl=args.hideControl)
+    return render_template('template.html', VIEW=VIEW, args=args,
+        URL_NOTEBOOK=cfg.URL_NOTEBOOK, URL_MAIN=cfg.URL_MAIN)
 
 
 def GoPage(viewUrl, viewId, page, anchor=None, **kwargs):
