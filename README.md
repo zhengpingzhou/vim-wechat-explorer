@@ -46,29 +46,6 @@ python3 app.py
 ## 配置选项
 
 ```bash
-usage: app.py [-h] [--my-name MY_NAME] [--your-name YOUR_NAME]
-              [--my-profile MY_PROFILE] [--your-profile YOUR_PROFILE]
-              [--start-date START_DATE] [--end-date END_DATE] [--hide-control]
-
-optional arguments:
-  # 查看帮助
-  -h, --help             show this help message and exit
-  # 自己的显示名称
-  --my-name 			MY_NAME
-  # 对方的显示名称
-  --your-name 			YOUR_NAME
-  # 自己的头像文件名，必须被放置于static/img目录下
-  --my-profile 			MY_PROFILE
-                        	filename of customized profile. must be under static/img/.
-  # 对方的头像文件名，必须被放置于static/img目录下
-  --your-profile 		YOUR_PROFILE
-                        	filename of customized profile. must be under static/img/.
-  # 起始日期：YYYY-MM-DD格式
-  --start-date 			START_DATE
-  # 终止日期：YYYY-MM-DD格式
-  --end-date 			END_DATE
-  # 默认隐藏控制面板
-  --hide-control         set to hide control panel on default.
 usage: app.py [-h] [--my-name MYNAME] [--your-name YOURNAME]
               [--my-profile MYPROFILE] [--your-profile YOURPROFILE]
               [--start-date STARTDATE] [--end-date ENDDATE] [--hide-control]
