@@ -69,6 +69,41 @@ optional arguments:
   --end-date 			END_DATE
   # 默认隐藏控制面板
   --hide-control         set to hide control panel on default.
+usage: app.py [-h] [--my-name MYNAME] [--your-name YOURNAME]
+              [--my-profile MYPROFILE] [--your-profile YOURPROFILE]
+              [--start-date STARTDATE] [--end-date ENDDATE] [--hide-control]
+              [--font {serif,sans}] [--font-weight FONTWEIGHT]
+              [--visible-ip VISIBLE_IP [VISIBLE_IP ...]]
+
+optional arguments:
+  # 查看帮助
+  -h, --help            show this help message and exit
+  # 自己的显示名称
+  --my-name MYNAME
+  # 对方的显示名称
+  --your-name YOURNAME
+  # 自己的头像文件名，必须被放置于static/img目录下
+  --my-profile MYPROFILE
+                        filename of customized profile. must be under
+                        static/img/.
+  # 对方的头像文件名，必须被放置于static/img目录下
+  --your-profile YOURPROFILE
+                        filename of customized profile. must be under
+                        static/img/.
+  # 起始日期：YYYY-MM-DD格式
+  --start-date STARTDATE
+  # 终止日期：YYYY-MM-DD格式
+  --end-date ENDDATE
+  # 默认隐藏控制面板
+  --hide-control        set to hide control panel on default.
+  # 字体设置（也可以通过在static/css/customize.css中调整字体来修改）
+  --font {serif,sans}
+  # 字体粗细
+  --font-weight FONTWEIGHT
+  # 可访问IP，默认仅包括127.0.0.1
+  # 可在Ubuntu使用ifconfig -a或Windows上使用ipconfig查看本机ip
+  --visible-ip VISIBLE_IP [VISIBLE_IP ...]
+                        Only visible from this IP address
 ```
 
 ## TODO
