@@ -22,7 +22,7 @@ pip3 install --local flask pymongo
 # 数据库建立
 python3 tools/build_db.py -i /path/to/txt/file/exported/from/iTools
 
-# 启动Flask服务器，然后从浏览器打开 http://127.0.0.1:5000/
+# 启动Flask服务器，然后从浏览器打开 http://127.0.0.1:5000/main
 python3 app.py
 ```
 
