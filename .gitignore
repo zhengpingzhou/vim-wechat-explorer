@@ -6,3 +6,5 @@
 **.swp
 .vscode/
 deprecated/
+static/css/customize.css
+
