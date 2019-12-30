@@ -38,12 +38,30 @@ class Database(object):
         self._cache = dict()
         self._useCache = useCache
         self._date = None
+        self._page = 1
+        self._anchor = None
         self.args = args
+
+    @property
+    def page(self):
+        return self._page
+
+    @page.setter
+    def page(self, page):
+        self._page = page
+
+    @property
+    def anchor(self):
+        return self._anchor
+
+    @anchor.setter
+    def anchor(self, anchor):
+        self._anchor = anchor
 
     @property
     def date(self):
         return date2str(self._date) if self._date else ''
-    
+
 
     def insertMany(self, msgList):
         nAdd = 0

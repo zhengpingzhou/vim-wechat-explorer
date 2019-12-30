@@ -67,6 +67,9 @@ def GoPage(viewUrl, viewId, page, anchor=None, **kwargs):
     VIEW.endDateStr = date2str(VIEW.endDate)
     VIEW.search = result.search
     VIEW.date = db[viewId].date
+
+    db[viewId].page = page
+    db[viewId].anchor = anchor
     return Render(VIEW)
 
 
@@ -89,7 +92,7 @@ def GoDate(viewUrl, viewId, date):
         msgIdx = result.msgList[0]['idx']
         return GoMessage(viewUrl, viewId, msgIdx)
     except:
-        return ('', http.HTTPStatus.NO_CONTENT)
+        return GoPage(viewUrl, viewId, db[viewId].page, db[viewId].anchor)
 
 
 def DoNotebook(viewUrl, viewId, secId, operation):
