@@ -4,7 +4,7 @@ import argparse
 from datetime import datetime, timedelta
 
 from flask import Flask
-from flask import request, render_template
+from flask import request, render_template, abort
 
 from lib.utils import Object
 from lib.utils import date2str, str2date
@@ -20,6 +20,7 @@ parser.add_argument('--end-date', dest='endDate', type=str, default='2100-01-01'
 parser.add_argument('--hide-control', dest='hideControl', action='store_true', help='set to hide control panel on default.')
 parser.add_argument('--font', dest='font', type=str, default='serif', choices=['serif', 'sans'])
 parser.add_argument('--font-weight', dest='fontWeight', type=int, default=500)
+parser.add_argument('--visible-ip', type=str, nargs='+', default=['127.0.0.1'], help='Only visible from this IP address')
 args = parser.parse_args()
 
 app = Flask(__name__)
@@ -105,6 +106,8 @@ def DoNotebook(viewUrl, viewId, secId, operation):
 
 
 def Response(viewUrl, viewId):
+    if request.remote_addr not in args.visible_ip + ['127.0.0.1']: abort(403)
+
     if request.method == 'GET':
         if 'page' in request.args:
             return GoPage(viewUrl, viewId, int(request.args['page']))
@@ -129,4 +132,4 @@ def Notebook():
 
 
 if __name__ == '__main__':
-    app.run(threaded=True)
+    app.run(host='0.0.0.0', threaded=True)
