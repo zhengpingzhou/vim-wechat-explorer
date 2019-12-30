@@ -39,11 +39,13 @@
     var secId = "{{ VIEW.startSec }}";
     var atBottom = false;
     var insertMode = false;
+    var scrolling = false;
 
     // --------------------------------------------------------------------------------
     $(document).ready(function() {
 
         prevSec = function() {
+            if (scrolling) return;
             if (secId === "{{ VIEW.startSec }}") {return false;}
             if (atBottom) {
                 atBottom = false;
@@ -51,22 +53,30 @@
                 secId = "sec" + (parseInt(secId.replace("sec", "")) - 1);
             }
             
+            scrolling = true;
             $('html, body').animate({
                 scrollTop: $("#" + secId).offset().top + 1
-            }, 200);
+            }, 200, function() {
+                scrolling = false;
+            });
             return true;
         }
 
         nextSec = function() {
+            if (scrolling) return;
             if (secId === "{{ VIEW.endSec }}") {
                 $("html, body").animate({ scrollTop: $(document).height() }, 200);
                 atBottom = true;
                 return true;
             }
             secId = "sec" + (parseInt(secId.replace("sec", "")) + 1);
+
+            scrolling = true;
             $('html, body').animate({
                 scrollTop: $("#" + secId).offset().top + 1
-            }, 200);
+            }, 200, function() {
+                scrolling = false;
+            });
             return true;
         }
 
@@ -81,17 +91,27 @@
         }
 
         scrollDown = function() {
+            if (scrolling) return;
             var Wscroll = $(this).scrollTop();
+
+            scrolling = true;
             $('html, body').animate({
                 scrollTop: Wscroll + 200
-            }, 200);
+            }, 200, function() {
+                scrolling = false;
+            });
         }
 
         scrollUp = function() {
+            if (scrolling) return;
             var Wscroll = $(this).scrollTop();
+
+            scrolling = true;
             $('html, body').animate({
                 scrollTop: Wscroll - 200
-            }, 200);
+            }, 200, function() {
+                scrolling = false;
+            });
         }
 
         hideControl = function() {
