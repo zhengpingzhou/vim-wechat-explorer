@@ -37,9 +37,14 @@ class Database(object):
         self._search = ''
         self._cache = dict()
         self._useCache = useCache
+        self._date = None
         self.args = args
 
+    @property
+    def date(self):
+        return date2str(self._date) if self._date else ''
     
+
     def insertMany(self, msgList):
         nAdd = 0
         for msg in msgList:
@@ -63,7 +68,7 @@ class Database(object):
 
 
     def queryDate(self, date):
-        date = str2date(date) if type(date) == str else date
+        self._date = date = str2date(date) if type(date) == str else date
         sql = {'datetime': {'$lt': date + timedelta(days=1), '$gte': date}}
         found = self.find(sql)
         return Object(msgList = found)
