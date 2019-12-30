@@ -17,4 +17,8 @@ def date2str(date):
     return date.strftime(DATE_FORMAT)
 
 def str2date(string):
-    return datetime.strptime(string, DATE_FORMAT)
+    try: date = datetime.strptime(string, DATE_FORMAT)
+    except: 
+        try: date = datetime.strptime(string, "%Y-%m")
+        except: date = datetime.strptime(string, "%Y")
+    return date

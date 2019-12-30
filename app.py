@@ -31,8 +31,8 @@ cfg = Object(
     EMPTY_RESPONSE = '{}'
 )
 db = {
-    cfg.ID_MAIN: Database(args, cfg.ID_MAIN, use_cache=True), 
-    cfg.ID_NOTEBOOK: Database(args, cfg.ID_NOTEBOOK, use_cache=False)
+    cfg.ID_MAIN: Database(args, cfg.ID_MAIN, useCache=True), 
+    cfg.ID_NOTEBOOK: Database(args, cfg.ID_NOTEBOOK, useCache=False)
 }
 
 
@@ -81,11 +81,11 @@ def GoMessage(viewUrl, viewId, msgIdx):
 
 
 def GoDate(viewUrl, viewId, date):
-    result = db[viewId].query(preprocess=False, date=date)
-    if result.msgList: 
+    try:
+        result = db[viewId].queryDate(date=date)
         msgIdx = result.msgList[0]['idx']
         return GoMessage(viewUrl, viewId, msgIdx)
-    else:
+    except:
         return ('', http.HTTPStatus.NO_CONTENT)
 
 

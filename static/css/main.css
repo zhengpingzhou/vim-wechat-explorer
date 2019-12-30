@@ -192,3 +192,7 @@ label.label-small {
 button.btn-submit {
 	font-size: 14px; margin-left: 10px !important; height: 30px; background-color: #222 !important; color: #eee; border-color: #222; padding: 5px;
 }
+input:focus {
+	color: #eee !important;
+	background-color: #222 !important;
+}

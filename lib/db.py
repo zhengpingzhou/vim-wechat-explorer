@@ -30,13 +30,13 @@ class Database(object):
     SEC_INTERVAL = 1800     # 30min
     MSG_INTERVAL = 180      # 3min
 
-    def __init__(self, args, dbName, use_cache=False):
+    def __init__(self, args, dbName, useCache=False):
         self._db = db[dbName]
         self._startDate = self.DATETIME_MIN
         self._endDate = self.DATETIME_MAX
         self._search = ''
         self._cache = dict()
-        self._use_cache = use_cache
+        self._useCache = useCache
         self.args = args
 
     
@@ -55,30 +55,43 @@ class Database(object):
             except: print('Del failed! msgIdx:', msg.idx)  
         print('nDel:', nDel)
 
-
-    def query(self, preprocess, **kwargs):
-        if 'date' in kwargs:
-            date = str2date(kwargs['date'])
-            sql = {'datetime': {'$lt': date + timedelta(days=1), '$gte': date}}
-        else:
-            if 'startDate' in kwargs:
-                self._startDate = str2date(kwargs['startDate'])
-            if 'endDate' in kwargs:
-                self._endDate = str2date(kwargs['endDate'])
-            if 'search' in kwargs:
-                self._search = kwargs['search'].strip()
-            sql = {'datetime': {'$lte': self._endDate, '$gte': self._startDate}}
-            if self._search != '': sql['content'] = {'$regex': '.*' + self._search + '.*'}
-
-        if self._use_cache and preprocess and self._search == '' and (self._startDate, self._endDate) in self._cache:
-            print('Using cache...')
-            return self._cache[(self._startDate, self._endDate)]
-
+    
+    def find(self, sql):
         found = self._db.find(sql)
         found = sorted(found, key=lambda msg: msg['idx'], reverse=True)
+        return found
 
+
+    def queryDate(self, date):
+        date = str2date(date) if type(date) == str else date
+        sql = {'datetime': {'$lt': date + timedelta(days=1), '$gte': date}}
+        found = self.find(sql)
+        return Object(msgList = found)
+
+
+    def query(self, preprocess, **kwargs):
+        if 'startDate' in kwargs:
+            self._startDate = str2date(kwargs['startDate'])
+        if 'endDate' in kwargs:
+            self._endDate = str2date(kwargs['endDate'])
+        if 'search' in kwargs:
+            self._search = kwargs['search'].strip()
+
+        sql = {'datetime': {'$lte': self._endDate, '$gte': self._startDate}}
+        if self._search != '': sql['content'] = {'$regex': '.*' + self._search + '.*'}
+
+        cacheKey = (self._startDate, self._endDate)
+        if self._useCache and preprocess and self._search == '' and cacheKey in self._cache:
+            print('Using cache...')
+            return self._cache[cacheKey]
+
+        found = self.find(sql)
         result = self.preprocess(found) if preprocess else Object(msgList=found)
-        if self._use_cache and preprocess and self._search == '': self._cache[(self._startDate, self._endDate)] = result
+
+        if self._useCache and preprocess and self._search == '': 
+            print('Storing cache...')
+            self._cache[cacheKey] = result
+
         return result
 
 
