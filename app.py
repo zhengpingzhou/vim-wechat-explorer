@@ -19,6 +19,7 @@ parser.add_argument('--start-date', dest='startDate', type=str, default='2000-01
 parser.add_argument('--end-date', dest='endDate', type=str, default='2100-01-01')
 parser.add_argument('--hide-control', dest='hideControl', action='store_true', help='set to hide control panel on default.')
 parser.add_argument('--font', dest='font', type=str, default='serif', choices=['serif', 'sans'])
+parser.add_argument('--font-weight', dest='fontWeight', type=int, default=500)
 args = parser.parse_args()
 
 app = Flask(__name__)

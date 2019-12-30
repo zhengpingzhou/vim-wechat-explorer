@@ -24,12 +24,12 @@
     {% if args.font == "serif" %}
       body { font-family: 'Noto Serif SC', serif !important; }
       .msg-sender { font-weight: 700 !important; }
-      .msg-content { font-weight: 500 !important; }
+      .msg-content { font-weight: {{ args.fontWeight }} !important; }
       .msg-time { font-weight: 500 !important; }
     {% else %}
       body { font-family: sans-serif !important; }
       .msg-sender { font-weight: 500 !important; }
-      .msg-content { font-weight: 400 !important; }
+      .msg-content { font-weight: {{ args.fontWeight }} !important; }
       .msg-time { font-weight: 400 !important; }
     {% endif %}
     </style>
