@@ -49,7 +49,7 @@ body {
 .pagination-minimal > ul > li.previous > a,
 .pagination-minimal > ul > li.previous > span, .pagination-minimal > ul > li.next > a,
 .pagination-minimal > ul > li.next > span {
-	border-right: 2px solid #222;
+	border: 0px solid #222 !important;
 }
 
 .pagination-minimal > ul > li.previous > a, .pagination-minimal > ul > li.previous > a:hover, .pagination-minimal > ul > li.previous > a:focus,
@@ -84,7 +84,8 @@ body {
 
 .pagination-minimal > ul > li > a,
 .pagination-minimal > ul > li > span {
-	border: 5px solid #222;
+	padding: 5px !important;
+	border: 2px solid #222 !important;
 }
 
 .pagination-minimal > ul > li > a:hover, .pagination-minimal > ul > li > a:focus,
@@ -100,6 +101,11 @@ body {
 .pagination-minimal > ul > li > span:active {
 	background-color: #16a085;
 	border-color: #16a085;
+}
+
+ul {
+	padding-left: 15px !important;
+	padding-right: 15px !important;
 }
 
 .form-control {
