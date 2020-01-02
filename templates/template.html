@@ -122,6 +122,14 @@
             $("#control-panel").show();
         }
 
+        $(".copy").click(function() {
+            var $tempElement = $("<input>");
+            $("body").append($tempElement);
+            $tempElement.val($(this).closest(".main-msg").find(".msg-content").text()).select();
+            document.execCommand("Copy");
+            $tempElement.remove();
+        });
+
         /*--------------------------------------------------------------------------------*/
         gotoPage = function(page) {
             window.location.replace("{{ VIEW.baseUrl }}?page=" + page);
@@ -231,7 +239,7 @@
           <p class="section-title">{{ sec.idx }}</p>
           <p>
             {% for msg in sec.msgList %}
-              <div id="msg{{ msg.idx }}" ondblclick="gotoMsg({{ msg.idx }});" class="btn btn-primary main-msg {% if msg.sender == '我' %} my-msg {% else %} your-msg {% endif %}">
+              <div id="msg{{ msg.idx }}" ondblclick="gotoMsg({{ msg.idx }});" class="btn btn-primary main-msg {% if msg.sender == '我' %} my-msg {% else %} your-msg {% endif %} copy">
                 <!-- profile -->
                 <div class="main-profile">
                     <img src="static/img/{{ msg.profile }}" class="main-profile">
