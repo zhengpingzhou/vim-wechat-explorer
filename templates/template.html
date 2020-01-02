@@ -231,7 +231,7 @@
           <p class="section-title">{{ sec.idx }}</p>
           <p>
             {% for msg in sec.msgList %}
-              <div id="msg{{ msg.idx }}" ondblclick="gotoMsg({{ msg.idx }});" class="btn btn-primary main-msg">
+              <div id="msg{{ msg.idx }}" ondblclick="gotoMsg({{ msg.idx }});" class="btn btn-primary main-msg {% if msg.sender == '我' %} my-msg {% else %} your-msg {% endif %}">
                 <!-- profile -->
                 <div class="main-profile">
                     <img src="static/img/{{ msg.profile }}" class="main-profile">
