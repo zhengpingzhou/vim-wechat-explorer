@@ -221,18 +221,25 @@ input:focus {
 body {
 	background-color: #ccc;
 } */
-/* .my-msg {
-	background-color: white !important;
-	color: #333;
+/*light theme*/
+.main-msg {
+	border-radius: 0 !important;
+}
+.my-msg {
+	border-left: 2px solid #42b983;
+	padding: 10px 15px;
+	color: #666;
+	background-color: rgba(66, 185, 131, .1);
 }
 .your-msg {
-	background-color: white !important;
-	color: #333;
+	/* border-left: 2px solid #34495e; */
+	padding: 10px 15px;
+	color: #34495e;
+	background-color: white;
 }
 .msg-time {
 	color: #666;
 }
 body {
 	background-color: white;
-} */
-/* CSS3 */
+}
