@@ -120,7 +120,7 @@ def Response(viewUrl, viewId):
         elif 'date' in request.args:
             return GoDate(viewUrl, viewId, request.args['date'])
         else:
-            return GoQuery(viewUrl, viewId, **request.args)
+            return GoQuery(viewUrl, viewId, **request.args.to_dict())
     else:
         return DoNotebook(viewUrl, viewId, **request.form)
 
